@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grocerly | Weekly Fresh Basket</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f8e4d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122018",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen flex-col">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/80 backdrop-blur-md dark:bg-background-dark/80">
+<div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+<div class="flex items-center gap-10">
+<a class="flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary text-3xl">eco</span>
+<h1 class="text-xl font-black tracking-tight text-primary">GROCERLY</h1>
+</a>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Baskets</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">How it Works</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Our Farms</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Recipes</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="h-10 w-64 rounded-full border-none bg-primary/5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search harvests..." type="text"/>
+</div>
+<button class="rounded-full bg-primary px-6 py-2 text-sm font-bold text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                        Subscribe
+                    </button>
+<div class="h-10 w-10 overflow-hidden rounded-full border-2 border-primary/20">
+<img alt="Profile" data-alt="User profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs7vwlwYhgZyhNZ6YvMrOh-KWWhLeCKbrepNqz0EF0xFsKV1w_i9oy0gx59HJ97ix9zlrrVkee0tRZ3D-uQF2OzkgpKzfbknJ-fszzo-KS6BY_lUt9-EFoG-tI3ihJl17dwPIqcFP8aqWj27Z_o6aINFJHMelioQ6f3f8anD9a7C-ydixezXIDCCDjTO6JN2SptO6HFs7-8Nrs-X4dLGqlvrw5icIHFjZOxaKmGDU-Tw2sqt2vxnnDHyhUKI5EYHJ3v2Ag_OdrkFXZ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="mx-auto max-w-7xl px-6 py-12">
+<div class="relative overflow-hidden rounded-3xl bg-primary/5 p-8 lg:p-16">
+<div class="relative z-10 grid gap-12 lg:grid-cols-2 lg:items-center">
+<div class="flex flex-col gap-8">
+<div>
+<span class="inline-block rounded-full bg-primary/10 px-4 py-1 text-xs font-bold uppercase tracking-widest text-primary">Harvest of the Week</span>
+<h2 class="mt-4 text-5xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-slate-100 lg:text-6xl">
+                                    Fresh seasonal harvests, <span class="text-primary text-opacity-80">delivered to your door.</span>
+</h2>
+<p class="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                                    Subscribe to the Weekly Fresh Basket for just <span class="font-bold text-slate-900 dark:text-slate-100 text-2xl">$35</span>. Organic, local, and hand-picked at peak ripeness.
+                                </p>
+</div>
+<div class="flex flex-wrap gap-4">
+<button class="rounded-xl bg-primary px-8 py-4 text-lg font-bold text-white shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">
+                                    Start Subscription
+                                </button>
+<button class="rounded-xl border-2 border-primary/20 bg-transparent px-8 py-4 text-lg font-bold text-primary hover:bg-primary/5 transition-all">
+                                    View Schedule
+                                </button>
+</div>
+<div class="flex items-center gap-4 border-t border-primary/10 pt-8">
+<div class="flex -space-x-3">
+<img alt="User" class="h-10 w-10 rounded-full border-2 border-white" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0XeIq0MS4tpnjkIBbGPjcMtYYjaznh11ZIPd2rJ96jS9YWBMXdp63Naf-4vFIcC_-9BueObT-A5cqwO62pOILkB3MhmYetwoVCQl2b6J97-qBn0p1-Rn95T0paWUTQ4jOKWPqZrkCsN-Jd7BPm1-Q8KEKH5BfTGwHsDlV6HSt0FbohDzpXh1pN2pesexLYG2JvxY-j0qTFBsciE-b8b9um-dwVVt1-wDz8tEbEfM3eMcVZaF5TSwMSK4qzbjOZJm-tOJWxsUyyy_H"/>
+<img alt="User" class="h-10 w-10 rounded-full border-2 border-white" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAStX_81T0sV-R30TWRuTA_ENdueBdnOAo4aoCq4Twq3jgP3N-Tcj41SZHYDavRw2i-xu3uflUtrRop__Cto37VsiWSAtixmjuVCZrDPW1rAxFo0fUuUEPizC0Z_nPf5ZK94Ru60bUs0TbqPo6hAkBUzUZIUTzK0K_zMiWiu1tyWjrMYweKtatKGOzfv0PQfL2IIgvIQX8pnpw1-EdLlfi6ZTTQy3J8aLmHqIpTm2VK0O3OGOcNhgyENmTazXgPrnUGRf4zkEUhirjt"/>
+<img alt="User" class="h-10 w-10 rounded-full border-2 border-white" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmcsX_zJruwNTlZPg7R3ULaejVo2RL2wU4r7c0ATnZ4FP7Fvg9MI7xx9wknAesXEV-fo_7sRIlr4Y80FZnbfThbl6QyZGwbM4BEXyw3ueFXF5jAAUovWqSnGg_V3Ah0qRcMrXI87gbc12JVe4dNMd3nXukgP_BB26WUlHnnenBtI-DbP0Hh6x8UyF0A45USXLMkmZRB1Z-Y9WSXAJvlPT9bRQEaOrYDuGpYKstsA9p5ROXcGkhxOILPLagAIWuuKuZ2ExvvsKklq0w"/>
+</div>
+<p class="text-sm font-medium text-slate-500">Joined by 2,400+ happy locals this week</p>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-square overflow-hidden rounded-2xl shadow-2xl">
+<img alt="Fresh Harvest Basket" class="h-full w-full object-cover" data-alt="Abundant basket of colorful fresh vegetables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnHPhoql4Aq4ImQP1l6ZWJ9r3QAgvSx30jA4MqlA3jXUaSzbOFRqqSlb_i-2k2X6hhrcsJM1zQ8LN_EwWMhH2e4VwCYkUkDKsMsxfPXOm9WOasIXHkYNa8Ub8hP-p7xfW2BWJZH9n8qdNqMUCpvji-MCJSg7RCS88-wS6IQVa8E04GUH26zz1rlpAdh4LOSn_vHP7ht-ZCJ1iOFXy8gcyyjOMtxA1TiyxI35SOhTvFaA3osh48IiO7hm7pvgY-NHM2r4qAmDiXEhtX"/>
+</div>
+<div class="absolute -bottom-6 -left-6 rounded-2xl bg-white p-6 shadow-xl dark:bg-background-dark border border-primary/10">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase text-slate-400">Next Delivery</p>
+<p class="text-lg font-bold">This Thursday</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Abstract Background Decorations -->
+<div class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl"></div>
+<div class="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl"></div>
+</div>
+</section>
+<!-- Seasonal Grid -->
+<section class="mx-auto max-w-7xl px-6 py-12">
+<div class="mb-10 flex items-end justify-between">
+<div>
+<h3 class="text-3xl font-black tracking-tight">Inside This Week's Basket</h3>
+<p class="mt-2 text-slate-500 font-medium">Picked Tuesday morning at Sunny Valley Farms</p>
+</div>
+<a class="text-sm font-bold text-primary hover:underline flex items-center gap-1" href="#">
+                        View all items <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+<!-- Item 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+<img alt="Heirloom Tomatoes" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close up of organic red heirloom tomatoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBUuC37AbduGmRccd-S0AQO80Tu0nyodHAXUy-Y2BiMq0l-cN2PKrp9lPtNK8j6FkAmP_V70RGhFjdouit-p40XHKSR5EWM--MzpLIzBfaldOUyBo0QE1fNzL2QJo0RLyu2TGr2Ye0U_323uQ_gf4x6dKsB_JIs1G63S6BB0Lx_LKoWja1zVfAaIVY9p7FiTDDAzp3HOTMzX5nxW1Fb19toPYBSH2UxuDNSQjMJ2-SorvUcnVFSW7gdTYl7hK0FsENw5eXaJ0j6w3o"/>
+<div class="absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-sm">Organic</div>
+</div>
+<div class="mt-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100">Heirloom Tomatoes</h4>
+<p class="text-sm text-slate-500">Farm-fresh and juicy • 2 lbs</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+<img alt="Organic Kale" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Fresh bunch of curly kale leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM9gSXodwoUjvr4mbt_l1JvJnk8x8u2_73mpXTYv9tmpMYw5Ne9szNx_4BiibLK7UANyDFD3zSzdJHo8lYcrrFITzMY_HVxzRiwu4tXXUzwdavrNWGDpKN-Cr7wQmQREJ_RoFvqI8imZn1rJXMplIEsOp9FzeQixW2kqwAt4wPry1fkOhJ-hacUD0gEfFOhqdi9EcdZuro1k0BZBFuLv3cgxLS-h33Ehzh3iYXQi3RhYcdSoAwiJO4IoiZ4vTrhm2LbYR3q6hTaNsK"/>
+<div class="absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-sm">Local</div>
+</div>
+<div class="mt-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100">Lacinato Kale</h4>
+<p class="text-sm text-slate-500">Crispy and nutrient-dense • 1 bunch</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+<img alt="Snap Peas" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Fresh vibrant green snap peas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOCj18w-2M24tdBA0CmxoupJJkTWdhoPL1T2EKonCDaquKxPzMcSxJp268eIpe2S7D0CxWBwD2h2tiV2h-jyBEnqESB5TcZ8cE7thxE0yLz6HFzvB5DyNik-VLHpAOcFL7OABDSOm4ItAbYiBQdeM8HR8DhjFDpHbXxMgQBb8UZzOFWGqF3BiYVkplGj1-o-VVJFDF_9N9AWN1dknhifB_BhACQe6rkBCSZbmReKLaq0EKISHIAOc1jSDJDu2RFVwInMt9Wr-sCEAL"/>
+</div>
+<div class="mt-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100">Fresh Snap Peas</h4>
+<p class="text-sm text-slate-500">Sweet and crunchy • 1 lb</p>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+<img alt="Golden Beets" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Golden beets with their green leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFV0PAyokWsQlIO4P-gKgIrqNd9rN2KgbazN8LA3yr1FxhHI3Krhv_LZEggFqlra8WXVYJtFQ1jL2pR_9B-qS4jmV3JigZOMyazGGZIxTDcUiEqM8MzXxBptuSN0Wea9-KxKd7H7M7eXnJ7Qh0RgbV2jskkjkxeIX14YaTCpKHtdnudmL-mT7f8UwYtE9mqRpWa_Cm8KeQFt0AFenHwKC-pkIcs4MOoP9audXcwX-1A0fS0karHROOjd5TCb5AZ-AjJrs7fl0veaM8"/>
+<div class="absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-sm">Limited</div>
+</div>
+<div class="mt-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100">Golden Beets</h4>
+<p class="text-sm text-slate-500">Earthy and sweet • 1 bunch</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Proposition -->
+<section class="bg-primary/5 py-24 dark:bg-primary/10">
+<div class="mx-auto max-w-7xl px-6">
+<div class="mb-16 text-center">
+<h3 class="text-4xl font-black tracking-tight">The Grocerly Advantage</h3>
+<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-400">We're reimagining the grocery experience by putting the farm first and the waste last.</p>
+</div>
+<div class="grid gap-8 md:grid-cols-3">
+<!-- Feature 1 -->
+<div class="rounded-2xl bg-white p-8 shadow-sm transition-all hover:shadow-xl dark:bg-background-dark dark:border dark:border-primary/20">
+<div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">location_on</span>
+</div>
+<h4 class="mb-3 text-xl font-bold">Locally Sourced</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">We partner with independent farms within 50 miles of your city to ensure peak freshness and support local economies.</p>
+</div>
+<!-- Feature 2 -->
+<div class="rounded-2xl bg-white p-8 shadow-sm transition-all hover:shadow-xl dark:bg-background-dark dark:border dark:border-primary/20">
+<div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">recycling</span>
+</div>
+<h4 class="mb-3 text-xl font-bold">Zero Waste Packaging</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">Every basket arrives in compostable or reusable materials. We take back last week's crate to sanitize and reuse.</p>
+</div>
+<!-- Feature 3 -->
+<div class="rounded-2xl bg-white p-8 shadow-sm transition-all hover:shadow-xl dark:bg-background-dark dark:border dark:border-primary/20">
+<div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">event_available</span>
+</div>
+<h4 class="mb-3 text-xl font-bold">Flexible Subscription</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">Going out of town? Skip a week, change your frequency, or cancel your subscription anytime with just one simple click.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonial Simple -->
+<section class="py-24">
+<div class="mx-auto max-w-4xl px-6 text-center">
+<span class="material-symbols-outlined text-5xl text-primary/30">format_quote</span>
+<blockquote class="mt-6 text-3xl font-medium italic leading-snug text-slate-800 dark:text-slate-200">
+                        "The quality of the produce is unlike anything I've found in supermarkets. It's transformed how my family eats every week. The heirloom tomatoes alone are worth the subscription."
+                    </blockquote>
+<div class="mt-10 flex flex-col items-center">
+<img alt="Customer" class="h-16 w-16 rounded-full border-4 border-primary/20" data-alt="Portrait of a happy female customer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFOjTUPiEHbhmAlHgi0ZKbeBv_3PzSAiWrOks4VqJYuwWI3pyikD1gEgoOZvps1--gLJXbx1zKdhcmoSg2RmXyLbU8ARNAxc94N2OB7TB5TDPvoODFN8h_5kID5QldeLlpKM37sEv6keKsMk2RYZnFS2qxoVpFStXI1vfUOV9hz-fMgi_1SZrIcC0EuCOleQ0mDvyxGzxg1G7xwWXziTjLFVZxUXnJhVfP5uYv9oGvdESyVFjHNPonY-t18twUeuK9U25fV2N_Ts8e"/>
+<p class="mt-4 font-bold">Sarah Jenkins</p>
+<p class="text-sm text-slate-500">Member since 2022 • Portland, OR</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-primary/10 bg-white dark:bg-background-dark py-16">
+<div class="mx-auto max-w-7xl px-6">
+<div class="grid gap-12 lg:grid-cols-4">
+<div class="flex flex-col gap-6">
+<a class="flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary text-3xl">eco</span>
+<span class="text-xl font-black tracking-tight text-primary">GROCERLY</span>
+</a>
+<p class="text-sm text-slate-500 leading-relaxed">Bringing the farm to your table, one basket at a time. Sustainable, local, and delicious.</p>
+<div class="flex gap-4">
+<a class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/20" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/20" href="#">
+<span class="material-symbols-outlined">mail</span>
+</a>
+</div>
+</div>
+<div>
+<h5 class="mb-6 font-bold uppercase tracking-widest text-xs text-slate-400">Shop</h5>
+<ul class="space-y-4 text-sm font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">The Weekly Basket</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Gift Cards</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Bulk Orders</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">New Season Specials</a></li>
+</ul>
+</div>
+<div>
+<h5 class="mb-6 font-bold uppercase tracking-widest text-xs text-slate-400">Company</h5>
+<ul class="space-y-4 text-sm font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Farm Partners</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+</ul>
+</div>
+<div>
+<h5 class="mb-6 font-bold uppercase tracking-widest text-xs text-slate-400">Join the Newsletter</h5>
+<p class="mb-4 text-sm text-slate-500">Get recipes and farm updates every Tuesday.</p>
+<form class="flex gap-2">
+<input class="w-full rounded-lg border-primary/20 bg-primary/5 text-sm focus:border-primary focus:ring-primary" placeholder="Email address" type="email"/>
+<button class="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary/90">Join</button>
+</form>
+</div>
+</div>
+<div class="mt-16 border-t border-primary/5 pt-8 text-center text-xs text-slate-400">
+<p>© 2024 Grocerly Produce Inc. All rights reserved. Locally sourced in your neighborhood.</p>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

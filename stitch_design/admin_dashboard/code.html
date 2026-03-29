@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f8e4d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122018",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">local_mall</span>
+</div>
+<div>
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-none">Grocerly Admin</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Management Console</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto p-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">inventory_2</span>
+<span class="text-sm">Products</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">shopping_cart</span>
+<span class="text-sm">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">category</span>
+<span class="text-sm">Categories</span>
+</a>
+<div class="pt-4 pb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Reports</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">monitoring</span>
+<span class="text-sm">Analytics</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<img class="size-9 rounded-full object-cover" data-alt="Professional profile headshot of a male admin" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdiv7uWUEARYuof3mE5YupUcFB5LDPG-h2q4ez5Ze1SBh_KGNLexNXW0ovguHkEMy81QR9j1rpvMEdZb8aH_9jC2gMHo4lSeGGRFFDQrB6TzG9psTdWuubQ1ED6hpV-9vYwUv7P-sS_k5GZaRiKvis3vEYpNc0gO3TD1XB_WsqIfsRPglBH__X7AvPf_c0l8qDvoHOiCMoh0MHp-owPNVEzgyNUII5kUpTFx--4f-rWxE_1Bnx9_jIOt4vfU7rI4j5WJUWdioShFYm"/>
+<div class="min-w-0">
+<p class="text-sm font-semibold truncate text-slate-900 dark:text-white">Alex Johnson</p>
+<p class="text-xs text-slate-500 truncate">Store Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-4 flex-1">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">Dashboard Overview</h2>
+<div class="max-w-md w-full ml-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+<input class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search orders, products, or customers..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg relative transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:border-slate-800 mx-2"></div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        New Product
+                    </button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark">
+<!-- Welcome Section -->
+<div class="mb-8">
+<h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Welcome back, Alex!</h3>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Here's what's happening with your grocery store today.</p>
+</div>
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">receipt_long</span>
+</div>
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders Today</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white mt-1">1,284</p>
+<div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                            vs. 1,141 yesterday
+                        </div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="size-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined text-[28px]">pending_actions</span>
+</div>
+<span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded">+5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pending Orders</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white mt-1">156</p>
+<div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>
+                            Requires action
+                        </div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="size-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+<span class="material-symbols-outlined text-[28px]">check_circle</span>
+</div>
+<span class="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded">-2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Completed Orders</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white mt-1">1,128</p>
+<div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
+<span class="material-symbols-outlined text-[14px]">trending_down</span>
+                            Lower than weekly avg
+                        </div>
+</div>
+</div>
+<!-- Secondary Content Area -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Recent Orders Table -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h4 class="font-bold text-slate-900 dark:text-white">Recent Orders</h4>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">View all</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+<th class="px-6 py-4">Order ID</th>
+<th class="px-6 py-4">Customer</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Amount</th>
+<th class="px-6 py-4">Date</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4 font-medium">#ORD-7281</td>
+<td class="px-6 py-4">Sarah Miller</td>
+<td class="px-6 py-4">
+<span class="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold">Completed</span>
+</td>
+<td class="px-6 py-4 font-semibold">$84.50</td>
+<td class="px-6 py-4 text-slate-500">2 mins ago</td>
+</tr>
+<tr class="text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4 font-medium">#ORD-7280</td>
+<td class="px-6 py-4">John Davis</td>
+<td class="px-6 py-4">
+<span class="bg-amber-500/10 text-amber-500 px-2.5 py-0.5 rounded-full text-xs font-semibold">Pending</span>
+</td>
+<td class="px-6 py-4 font-semibold">$122.00</td>
+<td class="px-6 py-4 text-slate-500">15 mins ago</td>
+</tr>
+<tr class="text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4 font-medium">#ORD-7279</td>
+<td class="px-6 py-4">Emily Chen</td>
+<td class="px-6 py-4">
+<span class="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold">Completed</span>
+</td>
+<td class="px-6 py-4 font-semibold">$45.10</td>
+<td class="px-6 py-4 text-slate-500">1 hour ago</td>
+</tr>
+<tr class="text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<td class="px-6 py-4 font-medium">#ORD-7278</td>
+<td class="px-6 py-4">Michael Brown</td>
+<td class="px-6 py-4">
+<span class="bg-slate-100 text-slate-500 px-2.5 py-0.5 rounded-full text-xs font-semibold">Processing</span>
+</td>
+<td class="px-6 py-4 font-semibold">$210.35</td>
+<td class="px-6 py-4 text-slate-500">3 hours ago</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Popular Categories -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+<h4 class="font-bold text-slate-900 dark:text-white mb-6">Order Breakdown</h4>
+<div class="space-y-6">
+<div>
+<div class="flex items-center justify-between text-sm mb-2">
+<span class="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span>
+                                        Fresh Produce
+                                    </span>
+<span class="font-bold">42%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-sm mb-2">
+<span class="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500"></span>
+                                        Dairy &amp; Eggs
+                                    </span>
+<span class="font-bold">28%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+<div class="bg-blue-500 h-2 rounded-full" style="width: 28%"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-sm mb-2">
+<span class="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+<span class="size-2 rounded-full bg-amber-500"></span>
+                                        Meat &amp; Seafood
+                                    </span>
+<span class="font-bold">15%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+<div class="bg-amber-500 h-2 rounded-full" style="width: 15%"></div>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between text-sm mb-2">
+<span class="text-slate-600 dark:text-slate-400 flex items-center gap-2">
+<span class="size-2 rounded-full bg-slate-400"></span>
+                                        Bakery
+                                    </span>
+<span class="font-bold">15%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+<div class="bg-slate-400 h-2 rounded-full" style="width: 15%"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-background-light dark:bg-background-dark rounded-lg flex items-center gap-4">
+<div class="size-10 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div>
+<p class="text-xs text-slate-500">Top Peak Hour</p>
+<p class="text-sm font-bold">10:00 AM - 12:00 PM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

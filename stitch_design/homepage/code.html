@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1f8e4d",
+              "background-light": "#f6f8f7",
+              "background-dark": "#122018",
+            },
+            fontFamily: {
+              "display": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Grocerly - Fresh Local Groceries</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 md:px-20 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 dark:bg-background-dark/80">
+<div class="flex items-center gap-10">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">eco</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Grocerly</h2>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Products</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Weekly Basket</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">About Us</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Contact</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-lg" data-icon="search">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-primary/5 focus:ring-0 h-full placeholder:text-primary/40 px-4 rounded-r-lg text-sm font-normal" placeholder="Search markets..." value=""/>
+</div>
+</label>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                        Sign In
+                    </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User profile avatar of a happy customer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqJ_lSQDRT0e9ocpaaiX495HYiQb4j3DzT5gv170StA6W3fPEDtskDHc3NE0EDE6fLP_CYuYWq7VuH88-kQ5LsAkSAFL4KNiL1lnSA8DgKAjEPw9d4hRP3QWNVjtE617HE9g1VfclCHMbB2Hj1TUn2XGORf3Yw-dwpxb_VkdVekzFMy0zoK1uwQPietUvgqkEDpig9nEjnKnHLkPW5tdh1W57WUE8xmME6tpEBHRPZNGVWZlfjkiaR0CBvbSFsPxfwtQtEB2jTtg-V");'></div>
+</div>
+</header>
+<main class="flex-1">
+<!-- Hero Section -->
+<div class="max-w-7xl mx-auto px-6 py-12 md:py-20">
+<div class="flex flex-col lg:flex-row gap-12 items-center">
+<div class="flex flex-col gap-8 flex-1">
+<div class="flex flex-col gap-4">
+<span class="text-primary font-bold tracking-widest text-xs uppercase bg-primary/10 w-fit px-3 py-1 rounded-full">Fresh &amp; Local</span>
+<h1 class="text-slate-900 dark:text-slate-100 text-5xl md:text-7xl font-black leading-tight tracking-tight">
+                                    Fresh groceries from local markets, <span class="text-primary">delivered to you.</span>
+</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg md:text-xl leading-relaxed max-w-xl">
+                                    Experience the finest seasonal produce and artisanal goods from your favorite local vendors, delivered straight to your doorstep with care.
+                                </p>
+</div>
+<div class="flex gap-4">
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-primary text-white text-lg font-bold hover:scale-[1.02] transition-transform shadow-xl shadow-primary/30">
+                                    Start Your Order
+                                </button>
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 border-2 border-primary/20 text-primary text-lg font-bold hover:bg-primary/5 transition-colors">
+                                    Browse Basket
+                                </button>
+</div>
+</div>
+<div class="flex-1 w-full relative">
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-10 -right-10 w-60 h-60 bg-primary/20 rounded-full blur-3xl"></div>
+<div class="relative w-full aspect-square md:aspect-[4/3] bg-center bg-no-repeat bg-cover rounded-2xl shadow-2xl overflow-hidden" data-alt="Abundance of fresh vegetables at a local farmers market" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDy6-VDGqTHrWWtJD0jzgdD51VKaHi_J9xx79DaVulg_V0hS8piwFiv5Y15jE0PAvvv0exAIQUHSxixsNf4KmtS1OQr_HyAtMBzXhQPFVTrj_9mXseTgV3p6SQ0bDISvnMaKPCuknjEjCnvBw0j4zeoj9VqEAShwncO4Aku2DA8a11bx1oUZEVBxa_ArUoPCi2_1slOhHspqtDgM0sh9KZDZintXIaBDrpQ0pwb_YSKVerc3ADs9bluEWr6uZ0r9iUFGaIzLIF_kAFd");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Categories -->
+<section class="bg-white dark:bg-background-dark/50 py-16">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex justify-between items-end mb-10">
+<div>
+<h2 class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Shop by Category</h2>
+<p class="text-slate-500 mt-2">The freshest picks from our partner producers</p>
+</div>
+<a class="text-primary font-semibold flex items-center gap-1 hover:underline" href="#">
+                                View all <span class="material-symbols-outlined">chevron_right</span>
+</a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">nutrition</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Vegetables</h3>
+<p class="text-slate-500 text-xs">Farm Fresh</p>
+</div>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">ios</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Fruits</h3>
+<p class="text-slate-500 text-xs">Organic &amp; Sweet</p>
+</div>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">egg</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Dairy &amp; Eggs</h3>
+<p class="text-slate-500 text-xs">Natural Pastures</p>
+</div>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">bakery_dining</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Bakery</h3>
+<p class="text-slate-500 text-xs">Baked Today</p>
+</div>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">restaurant</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Meat</h3>
+<p class="text-slate-500 text-xs">Premium Cuts</p>
+</div>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4 p-6 rounded-2xl bg-background-light dark:bg-background-dark border border-transparent hover:border-primary/20 transition-all hover:shadow-lg">
+<div class="bg-white dark:bg-slate-800 shadow-sm aspect-square rounded-full w-20 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">inventory_2</span>
+</div>
+<div class="text-center">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold">Pantry</h3>
+<p class="text-slate-500 text-xs">Kitchen Essentials</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Props -->
+<section class="max-w-7xl mx-auto px-6 py-20">
+<div class="flex flex-col gap-6 text-center max-w-3xl mx-auto mb-16">
+<h2 class="text-slate-900 dark:text-slate-100 text-4xl font-bold tracking-tight">Why Choose Grocerly?</h2>
+<p class="text-slate-600 dark:text-slate-400 text-lg">
+                            We connect you with the best local producers to ensure quality and sustainability in every bite.
+                        </p>
+</div>
+<div class="grid md:grid-cols-3 gap-8">
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-background-dark border border-primary/5 hover:border-primary/20 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">storefront</span>
+</div>
+<div class="flex flex-col gap-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold">Locally Sourced</h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">Supporting local farmers and small businesses in your community with every purchase.</p>
+</div>
+</div>
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-background-dark border border-primary/5 hover:border-primary/20 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">eco</span>
+</div>
+<div class="flex flex-col gap-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold">Eco-Friendly</h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">Plastic-free packaging and carbon-neutral delivery options to protect our planet.</p>
+</div>
+</div>
+<div class="flex flex-col gap-6 p-8 rounded-2xl bg-white dark:bg-background-dark border border-primary/5 hover:border-primary/20 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">bolt</span>
+</div>
+<div class="flex flex-col gap-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold">Fast Delivery</h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">Get your groceries delivered fresh within 2 hours of ordering from your local market.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Products / Promo -->
+<section class="max-w-7xl mx-auto px-6 pb-24">
+<div class="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 md:px-20 flex flex-col md:flex-row items-center justify-between gap-10">
+<div class="relative z-10 flex flex-col gap-6 max-w-xl text-white">
+<h2 class="text-4xl md:text-5xl font-black">Join our Weekly Basket program</h2>
+<p class="text-white/80 text-lg">Save 15% on your monthly groceries and get exclusive access to seasonal items and artisan specials.</p>
+<button class="bg-white text-primary px-8 py-4 rounded-xl font-bold w-fit hover:scale-105 transition-transform">Learn More</button>
+</div>
+<div class="relative z-10 hidden lg:block">
+<div class="w-80 h-80 bg-white/20 rounded-full flex items-center justify-center blur-2xl absolute -top-10 -right-10"></div>
+<div class="w-64 aspect-[3/4] bg-white rounded-2xl shadow-2xl rotate-6 p-4 flex flex-col gap-4">
+<div class="w-full aspect-square bg-slate-100 rounded-lg bg-cover bg-center" data-alt="Seasonal fruits and vegetables box" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuClaogPERy4nHV_UWe_7oxwlQx5a_HBEr9vzgy7H0o1HWautYg7gCWVAQMVXKVRCBtBb9xjVa3mrJi7HiSSxglRpv86EIVaRAqNVgvIPsB7yHIwwt97kNf_Ey9w72g3NPNcSUTLPsltVEqUoft7iEpwlju-OzwvDtOTE-sZ_z832sy6OGFussQsNOLHcV4zslcte6GwslxA6kx0pjL2Y4fVDxV7PFYqRlM_8wmP3wnpxS7bRfT7fggTlrjIHdZbZsCmmg-j9nvZK2nX')"></div>
+<div class="flex flex-col gap-1">
+<div class="h-4 w-2/3 bg-slate-200 rounded"></div>
+<div class="h-4 w-1/2 bg-slate-100 rounded"></div>
+</div>
+<div class="mt-auto flex justify-between items-center">
+<div class="h-6 w-12 bg-primary/20 rounded"></div>
+<div class="h-8 w-8 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Background Pattern Decor -->
+<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-background-dark border-t border-primary/10 pt-16 pb-8">
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">eco</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">Grocerly</h2>
+</div>
+<p class="text-slate-500 text-sm leading-relaxed">
+                            Empowering local farmers and bringing the freshness of the market straight to your kitchen. Quality, community, and sustainability in every box.
+                        </p>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary cursor-pointer hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-xl">share</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary cursor-pointer hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-xl">camera</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary cursor-pointer hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-xl">mail</span>
+</div>
+</div>
+</div>
+<div>
+<h4 class="font-bold mb-6">Quick Links</h4>
+<ul class="flex flex-col gap-4 text-slate-500 text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Home</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Products</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Weekly Basket</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Vendor Dashboard</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Support</h4>
+<ul class="flex flex-col gap-4 text-slate-500 text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Contact Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">FAQ</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Shipping Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Newsletter</h4>
+<p class="text-slate-500 text-sm mb-4">Get recipes and market updates in your inbox.</p>
+<div class="flex">
+<input class="w-full bg-primary/5 border-none rounded-l-lg focus:ring-1 focus:ring-primary text-sm" placeholder="Email address" type="text"/>
+<button class="bg-primary text-white px-4 py-2 rounded-r-lg">
+<span class="material-symbols-outlined text-xl">send</span>
+</button>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-6 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-xs">
+<p>© 2024 Grocerly Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<span>Terms of Service</span>
+<span>Cookie Policy</span>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

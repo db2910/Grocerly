@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f8e4d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122018",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-4">
+<div class="mx-auto flex max-w-7xl items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">eco</span>
+<h2 class="text-xl font-bold tracking-tight">Grocerly</h2>
+</div>
+<div class="hidden md:flex flex-1 min-w-[300px]">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full rounded-lg border-none bg-primary/5 py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary/50 text-sm" placeholder="Search fresh produce..." type="text"/>
+</div>
+</div>
+</div>
+<nav class="flex items-center gap-8">
+<div class="hidden lg:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Catalog</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Deals</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Orders</a>
+<div class="relative">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-200">shopping_cart</span>
+<span class="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">3</span>
+</div>
+</div>
+<div class="flex items-center gap-3 border-l border-primary/10 pl-8">
+<button class="flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-bold text-white hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
+                            Profile
+                        </button>
+<div class="h-10 w-10 overflow-hidden rounded-full border-2 border-primary/20 bg-slate-200" data-alt="User profile avatar portrait">
+<img alt="Avatar" class="h-full w-full object-cover" data-alt="Portrait of a smiling user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAOgOPSlp8aSDV8IPmHzeSzHA6bkja3onGN24b_bfMhoswbM5doATNPBMUBWmBmfH1jnBRzr_OdTQsYeZD0xwppgcl8qY7oCgrQ32cpzTWm6Mgz7ybwb826C-cFzGbw99gcg2hgzf55fCL6Ukbrwxy9vuJ0Q6mg64r4Ptb1WuWSet6RJht_SX9B6LaKa9BOhOKW-DY5JEsramkjoqWW7bRxE7f6KX3VHzzdKm7il1dDOyH2YhV6g9fvsQqemkDgtNY4RUxIZW-TkVL"/>
+</div>
+</div>
+</nav>
+</div>
+</header>
+<main class="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 lg:px-20 py-8">
+<!-- Breadcrumbs -->
+<nav class="mb-6 flex items-center gap-2 text-sm text-slate-500">
+<a class="hover:text-primary" href="#">Home</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="font-medium text-slate-900 dark:text-slate-100">Catalog</span>
+</nav>
+<div class="flex flex-col lg:flex-row gap-10">
+<!-- Sidebar Filters -->
+<aside class="w-full lg:w-64 shrink-0 space-y-8">
+<div>
+<h3 class="mb-4 text-lg font-bold">Categories</h3>
+<div class="space-y-1">
+<a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2.5 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">energy_savings_leaf</span>
+<span>Vegetables</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">nutrition</span>
+<span>Fruits</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">grain</span>
+<span>Grains</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">restaurant</span>
+<span>Spices</span>
+</a>
+</div>
+</div>
+<div>
+<h3 class="mb-4 text-lg font-bold">Market Location</h3>
+<div class="flex flex-col gap-2">
+<button class="flex items-center justify-between rounded-lg border border-primary/20 bg-white dark:bg-slate-800 px-4 py-3 text-left text-sm font-medium shadow-sm">
+<span>Kimironko Market</span>
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+</button>
+<button class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:border-primary/40 transition-colors">
+<span>Nyabugogo Market</span>
+<span class="material-symbols-outlined text-slate-300 text-lg">radio_button_unchecked</span>
+</button>
+<button class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-left text-sm font-medium hover:border-primary/40 transition-colors">
+<span>Gikondo Market</span>
+<span class="material-symbols-outlined text-slate-300 text-lg">radio_button_unchecked</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Product Content -->
+<div class="flex-1">
+<div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div>
+<h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">Fresh Vegetables</h1>
+<p class="mt-2 text-slate-500">Sourced directly from Kimironko farmers this morning.</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium text-slate-500 whitespace-nowrap">Sort by:</span>
+<button class="flex items-center gap-2 rounded-lg bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold shadow-sm border border-slate-200 dark:border-slate-700">
+                                Popularity
+                                <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Product Card 1 -->
+<div class="group flex flex-col overflow-hidden rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:shadow-md hover:-translate-y-1">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img alt="Fresh Tomatoes" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A pile of ripe red tomatoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWCyHvDX8WYijD3beJtyLLbrncSLNt6aUopxXpAtdVvhCmZkdqwgJiV6NEJdT29AMe-xPIWwiDqMaPR4kC5JqA3PkhH_NPmZ92wZl79uqYHplfqWqAwGuXw4bh-KwlyfvfFD57BLu-YBS-nr6kFObaAK7uwwWscfPBYXi3rj1RdlAeVdS4lUL3rY9hTLClM3TBd22eACsIpdW4uvKzRZbbwQfnpxswzXetWiQsg7u3SR58IBL8IjvSBKZD3YaJNcHNJzgQA0RxJGX2"/>
+<span class="absolute top-3 left-3 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-white uppercase tracking-wider">Fresh</span>
+</div>
+<div class="flex flex-1 flex-col p-5">
+<div class="mb-1 flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Organic Tomatoes</h3>
+<span class="text-lg font-black text-primary">$4.50</span>
+</div>
+<p class="mb-4 text-xs text-slate-500">Local farm, 1kg pack</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex h-9 items-center rounded-lg bg-slate-100 dark:bg-slate-700 px-2">
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="w-8 text-center text-sm font-bold">1</span>
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-white transition-colors hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">shopping_basket</span>
+                                        Add to Cart
+                                    </button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group flex flex-col overflow-hidden rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:shadow-md hover:-translate-y-1">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img alt="Fresh Bell Peppers" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Colorful red and yellow bell peppers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKHSKZOzcPqZbi3elACQNbdozxXRHoocC2dQQJbjfMdB0F72tV5cobrNAG-f2Oc-QYY1Ffu2XLjCTcXv_5-Pb8PWuHNblMPQGins0bjAyWGSOpY1KFaxm87ssBp3kPm1fOY902p1PYD-4EZ44qIhJ4qZZrNwkN-Yj8ZdgtGTSV72mVmJxvhycMdPiVMAppQR0KaGnbaXogSvrSSpazZ5v4QcvuKS5MYQyEMKVT4hg3jqACTxGCOU5unlWTJS6asBZyoMEnKo3-kLBO"/>
+</div>
+<div class="flex flex-1 flex-col p-5">
+<div class="mb-1 flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Mixed Bell Peppers</h3>
+<span class="text-lg font-black text-primary">$3.20</span>
+</div>
+<p class="mb-4 text-xs text-slate-500">Green, Red &amp; Yellow, 3 units</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex h-9 items-center rounded-lg bg-slate-100 dark:bg-slate-700 px-2">
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="w-8 text-center text-sm font-bold">1</span>
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-white transition-colors hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">shopping_basket</span>
+                                        Add to Cart
+                                    </button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group flex flex-col overflow-hidden rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:shadow-md hover:-translate-y-1">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img alt="Fresh Carrots" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Bunches of fresh carrots with green tops" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0C1s4TvOOk_OC9p34mNB3cSdwQcF44LDP6RQ0T3qIqVhof8XStwWxEYpfg2JWBWf-brAO1qUbwm7ODWRhAphjDPLUi0X5pR3XLa8qUB-YM3AKyKgGHIrLioXhcng-4RnOzDN0J8D9ENtohRpDq0M06qOZgqNBAYZwoxpfLxhgDaIwVuvkbksCvypaHRG4bWWwXTN2UnXIWAysj609kgG24Ri_QQEQliVni9kx_L1VtOvDQtV6E9fhTuVas8xMm5z5UvPva6adgZ3D"/>
+<span class="absolute top-3 left-3 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-bold text-white uppercase tracking-wider">Sale</span>
+</div>
+<div class="flex flex-1 flex-col p-5">
+<div class="mb-1 flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Baby Carrots</h3>
+<span class="text-lg font-black text-primary">$2.15</span>
+</div>
+<p class="mb-4 text-xs text-slate-500">Sweet and crunchy, 500g</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex h-9 items-center rounded-lg bg-slate-100 dark:bg-slate-700 px-2">
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="w-8 text-center text-sm font-bold">1</span>
+<button class="p-1 hover:text-primary"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-white transition-colors hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">shopping_basket</span>
+                                        Add to Cart
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- "People also buy" Section -->
+<section class="mt-16 rounded-2xl bg-primary/5 p-8 border border-primary/10">
+<div class="mb-6 flex items-center justify-between">
+<div>
+<h2 class="text-2xl font-bold tracking-tight">People also buy</h2>
+<p class="text-sm text-slate-500">Suggested pairings for your vegetable basket</p>
+</div>
+<button class="text-sm font-bold text-primary hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Suggestion 1 -->
+<div class="group flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-800 p-3 shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="aspect-square w-full overflow-hidden rounded-md bg-slate-100">
+<img alt="Olive Oil" class="h-full w-full object-cover" data-alt="A glass bottle of extra virgin olive oil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB-maNeLRtxGqc7v9GRnqGsFNHkhkfzCA38k80NEYL0tWd1vSVZWXDzRWD91_bMRm2F-Mdpmx_DyVpu7XoVkPwr8js9Bdqyb96liYMKQYXX2VVVPuQYwd0H1dDAgunkb5PRy3baIWV3wJN25c0l4pxWmBOCTJ6wwObIeddFQdX7uG8tVdE6VRXQqICYnnOiTYbLaoHuFr07NFsoYdXoaMEZ610ImnxuG0NsY8rFOc06-YH06ZNSUSucloTBeCh8Qnqb3dJPWNGlRH4"/>
+</div>
+<h4 class="text-sm font-bold truncate">Extra Virgin Olive Oil</h4>
+<div class="flex items-center justify-between">
+<span class="text-sm font-black text-primary">$12.00</span>
+<button class="rounded-full bg-primary/10 p-1 text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<!-- Suggestion 2 -->
+<div class="group flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-800 p-3 shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="aspect-square w-full overflow-hidden rounded-md bg-slate-100">
+<img alt="Garlic" class="h-full w-full object-cover" data-alt="Several heads of white garlic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG8LnJXAX5RvQLkGtyjKchUfp8o3Nuvl4MlZvh8zRmnJhZIO7Lke9UYUSbob5x0SJj4kCfJ4Lx6oDa2UeHNwuVFsM5mDJqZ7AcZbJZqxu8iq7IfbvcUOZ1M2xplj6vXaZuhjXrOzwCerOiqBlFMXcAv1_iXzuFz5ghV8lwf2SoaP0USzkY1gg8JjmYiJXWqqhywn0bsDxa3Zno0n8HHGjZsWSsrMWuGq2Ru0nlcqO3Z6BrA-VP1s1n_bPHhMTHCSotqM-hVtZ3Tgea"/>
+</div>
+<h4 class="text-sm font-bold truncate">Fresh Garlic</h4>
+<div class="flex items-center justify-between">
+<span class="text-sm font-black text-primary">$1.50</span>
+<button class="rounded-full bg-primary/10 p-1 text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<!-- Suggestion 3 -->
+<div class="group flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-800 p-3 shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="aspect-square w-full overflow-hidden rounded-md bg-slate-100">
+<img alt="Sea Salt" class="h-full w-full object-cover" data-alt="A small wooden bowl filled with sea salt" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBErlC51wOI0mDcUWca4l7gYyNJ8c4sNrFbTE7zLAx1wa9z0EjcGWWDm3RRPsfCT4vFuDfDZFtRbleH446kmn0BJ3y2ud5WrzRaQfmcQfIGrsCfv_Vnwn-t_BDMOI-Rc08rOIIGgnQNkAvYtPKt5EuYTeVXyrfpjkWW2aUqcg-qFrsXP2OO5jxm9CE2Vf_zOYe46VyK6dfXm7axkaYpR_XqYVb-O89F32ze7Z8FMvJ5mWPYy7OlurYEhLVyNvPL0MD-bSnHbvrgUDl1"/>
+</div>
+<h4 class="text-sm font-bold truncate">Himalayan Salt</h4>
+<div class="flex items-center justify-between">
+<span class="text-sm font-black text-primary">$4.99</span>
+<button class="rounded-full bg-primary/10 p-1 text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<!-- Suggestion 4 -->
+<div class="group flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-800 p-3 shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="aspect-square w-full overflow-hidden rounded-md bg-slate-100">
+<img alt="Fresh Basil" class="h-full w-full object-cover" data-alt="Bunch of fresh green basil leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybHlpPgYhFGFpQIo2ijFpFgAMSNfrJc2YIngs7Tel9JVs3ViTT9UIDy752F0SciNdU2DWQgi4jqZJ14EgKXe-Tk3o_1j_7etZkfmdwAhpQ1TEcDLIML7ilpzYki6PNhp6WJOGtn_b3M9i-ey9jslTAmSPDc0acP244pNYooAzHU-bbYPUzbVYf5vXMusnChoCSSpx0yx7n5UxSHkvct1mz39XxzLNHvJ7VNDKKZDnN-NnAoaVruq1wsSZ8Q8WEJkk8iZqRAgtu3-k"/>
+</div>
+<h4 class="text-sm font-bold truncate">Organic Basil</h4>
+<div class="flex items-center justify-between">
+<span class="text-sm font-black text-primary">$2.20</span>
+<button class="rounded-full bg-primary/10 p-1 text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-20 border-t border-primary/10 bg-white dark:bg-background-dark py-12 px-6 lg:px-20">
+<div class="mx-auto max-w-7xl">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-2 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl font-bold">eco</span>
+<h2 class="text-xl font-bold tracking-tight">Grocerly</h2>
+</div>
+<p class="max-w-xs text-slate-500 leading-relaxed">Connecting you with the freshest produce from local markets in Rwanda. Quality guaranteed from farm to table.</p>
+</div>
+<div>
+<h4 class="mb-6 font-bold uppercase tracking-wider text-xs text-slate-400">Shop</h4>
+<ul class="space-y-4 text-sm font-medium">
+<li><a class="hover:text-primary" href="#">Vegetables</a></li>
+<li><a class="hover:text-primary" href="#">Fruits</a></li>
+<li><a class="hover:text-primary" href="#">Grains</a></li>
+<li><a class="hover:text-primary" href="#">Spices</a></li>
+</ul>
+</div>
+<div>
+<h4 class="mb-6 font-bold uppercase tracking-wider text-xs text-slate-400">Support</h4>
+<ul class="space-y-4 text-sm font-medium">
+<li><a class="hover:text-primary" href="#">Help Center</a></li>
+<li><a class="hover:text-primary" href="#">Delivery Areas</a></li>
+<li><a class="hover:text-primary" href="#">Market Partners</a></li>
+<li><a class="hover:text-primary" href="#">Contact Us</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-12 flex flex-col md:flex-row items-center justify-between border-t border-primary/10 pt-8 text-sm text-slate-400">
+<p>© 2024 Grocerly Rwanda. All rights reserved.</p>
+<div class="mt-4 flex gap-6 md:mt-0">
+<a class="hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary" href="#">Terms of Service</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
