@@ -28,11 +28,20 @@ function toProduct(p: DbProduct): Product {
 function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const urlQuery = searchParams.get('q') ?? '';
 
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [markets, setMarkets] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Local search state — initialised from URL param, but updates live as user types
+  const [searchInput, setSearchInput] = useState(urlQuery);
+
+  // Sync when navigating to /shop?q=... from the Navbar
+  useEffect(() => {
+    setSearchInput(urlQuery);
+  }, [urlQuery]);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
@@ -77,6 +86,14 @@ function ShopContent() {
       result = result.filter(p => p.markets?.name === selectedMarket);
     }
 
+    if (searchInput) {
+      const q = searchInput.toLowerCase();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.source ?? '').toLowerCase().includes(q)
+      );
+    }
+
     // Ensure only active products are shown on the shop page
     result = result.filter(p => p.is_active);
 
@@ -89,7 +106,7 @@ function ShopContent() {
         default: return 0;
       }
     });
-  }, [products, selectedCategoryId, selectedMarket, sortBy]);
+  }, [products, selectedCategoryId, selectedMarket, searchInput, sortBy]);
 
   // Map DbCategory → shape expected by CategoryFilter
   const categoryFilterItems = categories.map(c => ({ id: c.slug, name: c.name, icon: c.icon ?? '' }));
@@ -135,17 +152,39 @@ function ShopContent() {
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">
-                {activeCategory ? activeCategory.name : "All Groceries"}
+                {searchInput
+                  ? <>Results for <span className="text-primary">&ldquo;{searchInput}&rdquo;</span></>
+                  : activeCategory ? activeCategory.name : "All Groceries"}
               </h1>
               <p className="mt-2 text-slate-500 font-medium">
-                Showing {filteredProducts.length} results
+                Showing {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
+                {searchInput && (
+                  <button onClick={() => setSearchInput('')} className="ml-3 text-primary text-sm font-bold hover:underline">Clear search ✕</button>
+                )}
               </p>
             </div>
             <div className="flex items-center gap-3 self-start sm:self-auto">
+              {/* Inline search on shop page for live filtering */}
+              <div className="relative hidden sm:flex items-center">
+                <span className="absolute left-3 text-slate-400 pointer-events-none">
+                  <svg className="w-4 h-4" fill="none" strokeWidth={2} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                </span>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search products..."
+                  className="pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 w-48"
+                />
+                {searchInput && (
+                  <button onClick={() => setSearchInput('')} className="absolute right-3 text-slate-400 hover:text-slate-600">✕</button>
+                )}
+              </div>
               <span className="text-sm font-medium text-slate-500 whitespace-nowrap">Sort by:</span>
               <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
             </div>
           </div>
+
 
           {/* Product Grid */}
           {filteredProducts.length > 0 ? (

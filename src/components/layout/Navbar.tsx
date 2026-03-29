@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { ShoppingBasket, Menu, X, Search, FileText } from "lucide-react";
 import { CustomOrderModal } from "@/components/CustomOrderModal";
@@ -10,8 +11,29 @@ import { CustomOrderModal } from "@/components/CustomOrderModal";
 export function Navbar() {
   const items = useCartStore((state) => state.items);
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) {
+      router.push(`/shop?q=${encodeURIComponent(q)}`);
+    } else {
+      router.push('/shop');
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    // Clear URL param immediately when user erases the query
+    if (!val.trim()) {
+      router.push('/shop');
+    }
+  };
 
   return (
     <>
@@ -45,17 +67,22 @@ export function Navbar() {
 
         {/* Right Side: Search, Cart & Mobile Toggle */}
         <div className="flex flex-1 justify-end gap-6 items-center">
-          <label className="hidden lg:flex flex-col min-w-40 !h-11 max-w-64 w-full">
+          <form onSubmit={handleSearch} className="hidden lg:flex flex-col min-w-40 !h-11 max-w-64 w-full">
             <div className="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
-              <div className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl">
+              <button
+                type="submit"
+                className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl hover:text-primary transition-colors"
+              >
                 <Search size={18} />
-              </div>
+              </button>
               <input
                 className="flex w-full min-w-0 flex-1 border-none bg-primary/5 focus:ring-0 h-full placeholder:text-primary/40 px-4 rounded-r-xl text-sm outline-none"
                 placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
-          </label>
+          </form>
           <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsCustomModalOpen(true)}
@@ -107,17 +134,19 @@ export function Navbar() {
            </Link>
 
            {/* Mobile Search */}
-           <div className="w-full px-6 py-2 mt-2">
+           <form onSubmit={handleSearch} className="w-full px-6 py-2 mt-2">
              <div className="flex w-full items-stretch rounded-xl h-11 shadow-sm border border-slate-200 dark:border-slate-800">
-                <div className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl">
+                <button type="submit" className="text-primary/60 flex border-none bg-primary/5 items-center justify-center pl-4 rounded-l-xl hover:text-primary transition-colors">
                   <Search size={18} />
-                </div>
+                </button>
                 <input
                   className="flex w-full min-w-0 flex-1 border-none bg-primary/5 focus:ring-0 h-full placeholder:text-primary/40 px-4 rounded-r-xl text-sm outline-none"
                   placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
              </div>
-           </div>
+           </form>
         </nav>
       )}
     </header>
