@@ -44,7 +44,8 @@ export default function AdminDashboard() {
 
   const filteredOrdersCount = filteredOrders.length;
   const filteredRevenue = filteredOrders.reduce((acc, o) => {
-    if ((o.status || '').toLowerCase() !== 'cancelled') return acc + o.total_amount;
+    const s = (o.status || '').toLowerCase();
+    if (s === 'confirmed' || s === 'delivered') return acc + o.total_amount;
     return acc;
   }, 0);
   
@@ -142,8 +143,9 @@ export default function AdminDashboard() {
                 <span className="material-symbols-outlined">payments</span>
               </div>
               <div>
-                <p className="text-slate-500 text-sm font-bold">Revenue ({timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)})</p>
+                <p className="text-slate-500 text-sm font-bold">Confirmed Revenue ({timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)})</p>
                 <p className="text-3xl font-black mt-1">{filteredRevenue.toLocaleString()} RWF</p>
+                <p className="text-[10px] font-bold text-amber-500 mt-1">Confirmed &amp; Delivered only</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-primary/5 flex flex-col gap-4">

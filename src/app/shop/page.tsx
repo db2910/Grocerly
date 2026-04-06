@@ -5,9 +5,10 @@ import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CategoryFilter } from "@/components/shop/CategoryFilter";
-import { MarketFilter } from "@/components/shop/MarketFilter";
 import { SortDropdown, SortOption } from "@/components/shop/SortDropdown";
-import { fetchProducts, fetchCategories, fetchMarkets, DbProduct, DbCategory, Product } from "@/lib/supabase/db";
+import { fetchProducts, fetchCategories, DbProduct, DbCategory, Product } from "@/lib/supabase/db";
+// MarketFilter import kept but hidden — re-enable when vendor/market feature launches
+// import { MarketFilter } from "@/components/shop/MarketFilter";
 
 // Convert a DbProduct from Supabase into the Product shape expected by ProductCard
 function toProduct(p: DbProduct): Product {
@@ -32,7 +33,6 @@ function ShopContent() {
 
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [markets, setMarkets] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Local search state — initialised from URL param, but updates live as user types
@@ -44,20 +44,17 @@ function ShopContent() {
   }, [urlQuery]);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
 
   // Fetch all data from Supabase on mount
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [cats, mkts, prods] = await Promise.all([
+      const [cats, prods] = await Promise.all([
         fetchCategories(),
-        fetchMarkets(),
         fetchProducts(),
       ]);
       setCategories(cats);
-      setMarkets(mkts.map(m => m.name));
       setProducts(prods);
       setLoading(false);
     }
@@ -82,10 +79,6 @@ function ShopContent() {
       result = result.filter(p => p.categories?.slug === selectedCategoryId);
     }
 
-    if (selectedMarket) {
-      result = result.filter(p => p.markets?.name === selectedMarket);
-    }
-
     if (searchInput) {
       const q = searchInput.toLowerCase();
       result = result.filter(p =>
@@ -106,7 +99,7 @@ function ShopContent() {
         default: return 0;
       }
     });
-  }, [products, selectedCategoryId, selectedMarket, searchInput, sortBy]);
+  }, [products, selectedCategoryId, searchInput, sortBy]);
 
   // Map DbCategory → shape expected by CategoryFilter
   const categoryFilterItems = categories.map(c => ({ id: c.slug, name: c.name, icon: c.icon ?? '' }));
@@ -139,11 +132,8 @@ function ShopContent() {
               selectedCategoryId={selectedCategoryId}
               onSelectCategory={setSelectedCategoryId}
             />
-            <MarketFilter
-              markets={markets}
-              selectedMarket={selectedMarket}
-              onSelectMarket={setSelectedMarket}
-            />
+            {/* MarketFilter hidden until vendor/market feature launches */}
+            {/* <MarketFilter markets={markets} selectedMarket={selectedMarket} onSelectMarket={setSelectedMarket} /> */}
           </div>
         </aside>
 
@@ -201,7 +191,7 @@ function ShopContent() {
                 We couldn't find any products matching your current filters. Try selecting a different category or market location.
               </p>
               <button
-                onClick={() => { setSelectedCategoryId(null); setSelectedMarket(null); }}
+                onClick={() => { setSelectedCategoryId(null); }}
                 className="mt-6 font-semibold text-primary hover:underline"
               >
                 Clear all filters

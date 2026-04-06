@@ -115,10 +115,11 @@ export default function AdminLayout({
                <SidebarLink href="/admin/orders" icon="shopping_bag" label="Orders" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                <SidebarLink href="/admin/products" icon="inventory_2" label="Products" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                <SidebarLink href="/admin/weekly-basket" icon="shopping_basket" label="Weekly Basket" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
-               <SidebarLink href="/admin/markets" icon="storefront" label="Markets" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
+               {/* Markets link hidden until vendor/market feature launches — code preserved at /admin/markets */}
                <SidebarLink href="/admin/customers" icon="group" label="Customers" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                <div className="mt-4 border-t border-slate-100 dark:border-slate-700 pt-6 w-full">
                  <SidebarLink href="/admin/reports" icon="bar_chart" label="Reports" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
+                 <SidebarLink href="/admin/settings" icon="settings" label="Settings" currentPath={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                </div>
             </nav>
           </div>

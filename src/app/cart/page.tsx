@@ -1,11 +1,11 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/cartStore";
 import { getUnitStep } from "@/lib/quantityUtils";
-import { saveOrder } from "@/lib/supabase/db";
+import { saveOrder, fetchSettings, DEFAULT_SETTINGS } from "@/lib/supabase/db";
 
 // Inline WhatsApp icon SVG for reuse
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -19,6 +19,12 @@ function WhatsAppIcon({ className }: { className?: string }) {
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
 
+  // Delivery fees loaded from DB — fallback to defaults while loading
+  const [fees, setFees] = useState(DEFAULT_SETTINGS);
+  useEffect(() => {
+    fetchSettings().then(setFees);
+  }, []);
+
   const [isGift, setIsGift] = useState(false);
   const [expressDelivery, setExpressDelivery] = useState(false);
   const [touched, setTouched] = useState({ name: false, phone: false, location: false });
@@ -31,7 +37,7 @@ export default function CartPage() {
   });
 
   const subtotal = getTotal();
-  const deliveryFee = expressDelivery ? 3500 : 1500;
+  const deliveryFee = fees.standardDeliveryFee + (expressDelivery ? fees.expressDeliveryFee : 0);
   const totalAmount = subtotal + deliveryFee;
 
   // Validation helpers
@@ -82,13 +88,22 @@ export default function CartPage() {
       text += `*Recipient Phone:* ${form.recipientPhone}\n`;
     }
     text += `\n*Delivery Location:* ${form.location}\n`;
-    text += `*Express Delivery:* ${expressDelivery ? 'Yes (+2,000 RWF)' : 'No'}\n\n`;
+    text += `*Express Delivery:* ${expressDelivery ? `Yes (+${fees.expressDeliveryFee.toLocaleString()} RWF surcharge)` : 'No'}\n\n`;
     text += `*Items:*\n`;
     items.forEach(item => {
-      const step = getUnitStep(item.unit ?? 'piece');
-      const qtyLabel = step < 1 ? `${item.quantity.toFixed(1)} kg` : `${item.quantity}× ${item.unit}`;
-      const lineTotal = (item.price * item.quantity).toLocaleString();
-      text += `- ${item.name} (${qtyLabel}) — ${lineTotal} RWF\n`;
+      if (item.isBasket && item.basketItems) {
+        // Expand basket items so admin sees each product
+        text += `\n🧺 *${item.name}* (×${item.quantity} basket${item.quantity > 1 ? 's' : ''})\n`;
+        item.basketItems.forEach(bi => {
+          const lineTotal = (bi.price_at_time * bi.quantity * item.quantity).toLocaleString();
+          text += `  - ${bi.name} (${bi.quantity} ${bi.unit}× ${item.quantity}) — ${lineTotal} RWF\n`;
+        });
+      } else {
+        const step = getUnitStep(item.unit ?? 'piece');
+        const qtyLabel = step < 1 ? `${item.quantity.toFixed(1)} kg` : `${item.quantity}× ${item.unit}`;
+        const lineTotal = (item.price * item.quantity).toLocaleString();
+        text += `- ${item.name} (${qtyLabel}) — ${lineTotal} RWF\n`;
+      }
     });
     text += `\n*Subtotal:* ${subtotal.toLocaleString()} RWF\n`;
     text += `*Delivery Fee:* ${deliveryFee.toLocaleString()} RWF\n`;
@@ -100,6 +115,35 @@ export default function CartPage() {
     
     const hasBasketItems = items.some(i => i.categoryId === 'basket');
     const orderType = hasBasketItems ? 'basket' : 'standard';
+
+    // Flatten basket items for order_items storage
+    const flatItems: Array<{
+      order_id: string;
+      product_id: string | null;
+      name: string;
+      quantity: number;
+      unit: string;
+      price_at_time: number;
+    }> = items.flatMap(item => {
+      if (item.isBasket && item.basketItems) {
+        return item.basketItems.map(bi => ({
+          order_id: '',
+          product_id: null as null,
+          name: bi.name,
+          quantity: bi.quantity * item.quantity,
+          unit: bi.unit,
+          price_at_time: bi.price_at_time,
+        }));
+      }
+      return [{
+        order_id: '',
+        product_id: item.id as string | null,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit ?? 'piece',
+        price_at_time: item.price,
+      }];
+    });
 
     const { success } = await saveOrder(
       {
@@ -115,14 +159,7 @@ export default function CartPage() {
         whatsapp_sent:     true,
         whatsapp_sent_at:  now,
       },
-      items.map(item => ({
-        order_id:       '',          // filled by saveOrder
-        product_id:     item.id,
-        name:           item.name,
-        quantity:       item.quantity,
-        unit:           item.unit ?? 'piece',
-        price_at_time:  item.price,
-      }))
+      flatItems
     );
 
     if (!success) {
@@ -183,13 +220,32 @@ export default function CartPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                   {items.map(item => {
+                    const lineTotal = item.price * item.quantity;
+
+                    // ── Basket row ────────────────────────────────────────
+                    if (item.isBasket) {
+                      return (
+                        <BasketCartRow
+                          key={item.id}
+                          item={item}
+                          lineTotal={lineTotal}
+                          onRemove={() => handleRemove(item.id, item.name)}
+                          onDecrement={() => {
+                            // "one per order" rule — decrementing is not allowed, use remove button
+                          }}
+                          onIncrement={() => {
+                            // "one per order" rule — incrementing is not allowed
+                          }}
+                        />
+                      );
+                    }
+
+                    // ── Regular product row ───────────────────────────────
                     const step = getUnitStep(item.unit ?? 'piece');
                     const isWeight = step < 1;
-                    // Weight: "1.0 kg"  |  Count: "1 × 30 units"
                     const qtyLabel = isWeight
                       ? `${item.quantity.toFixed(1)} kg`
                       : `${item.quantity} × ${item.unit}`;
-                    const lineTotal = item.price * item.quantity;
                     return (
                       <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         {/* Product Info */}
@@ -244,6 +300,7 @@ export default function CartPage() {
                       </tr>
                     );
                   })}
+
                 </tbody>
               </table>
             </div>
@@ -352,11 +409,11 @@ export default function CartPage() {
               </div>
               <div>
                 <p className="font-bold">Express Delivery</p>
-                <p className="text-xs text-slate-500">Get your order within 60 minutes</p>
+                <p className="text-xs text-slate-500">{fees.expressDeliveryLabel}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-bold text-primary">+2,000 RWF</span>
+              <span className="font-bold text-primary">+{fees.expressDeliveryFee.toLocaleString()} RWF surcharge</span>
               <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${expressDelivery ? 'bg-primary border-primary' : 'border-slate-300'}`}>
                 {expressDelivery && <span className="material-symbols-outlined text-white text-sm">check</span>}
               </div>
@@ -429,5 +486,101 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Basket Cart Row Component ────────────────────────────────────────────────
+function BasketCartRow({
+  item,
+  lineTotal,
+  onRemove,
+  onDecrement,
+  onIncrement,
+}: {
+  item: import('@/store/cartStore').CartItem;
+  lineTotal: number;
+  onRemove: () => void;
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <>
+      <tr className="bg-amber-50/40 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+        {/* Basket Info */}
+        <td className="px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="size-14 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-700">
+              <span className="material-symbols-outlined text-amber-600 text-2xl">shopping_basket</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{item.name}</p>
+                <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] font-black rounded-full uppercase tracking-wide">
+                  {item.basketItemCount} items
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-[11px] text-primary font-semibold hover:underline flex items-center gap-0.5"
+                >
+                  <span className="material-symbols-outlined text-[13px]">{expanded ? 'expand_less' : 'expand_more'}</span>
+                  {expanded ? 'Hide contents' : 'See contents'}
+                </button>
+                <span className="text-slate-300">·</span>
+                <button
+                  onClick={onRemove}
+                  className="text-[11px] text-red-400 hover:text-red-600 font-semibold transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </td>
+
+        {/* Quantity — integer stepper only, min 1 */}
+        <td className="px-5 py-4 text-center">
+          <div className="inline-flex items-center justify-center h-9 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 border border-slate-200 dark:border-slate-700">
+            <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+              Quantity: <span className="text-slate-900 dark:text-slate-100 ml-1">1</span>
+            </span>
+          </div>
+        </td>
+
+        {/* Unit price */}
+        <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+          {item.price.toLocaleString()} RWF
+        </td>
+
+        {/* Line total */}
+        <td className="px-5 py-4 text-right font-black text-slate-900 dark:text-slate-100 whitespace-nowrap">
+          {lineTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} RWF
+        </td>
+      </tr>
+
+      {/* Expandable basket contents */}
+      {expanded && item.basketItems && (
+        <tr className="bg-amber-50/20 dark:bg-amber-900/5">
+          <td colSpan={4} className="px-5 pb-4 pt-0">
+            <div className="ml-[68px] border border-amber-200/60 dark:border-amber-700/40 rounded-xl overflow-hidden">
+              {item.basketItems.map((bi, i) => (
+                <div key={i} className="flex justify-between items-center px-4 py-2.5 text-sm border-b border-amber-100 dark:border-amber-800/30 last:border-0">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{bi.name}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-slate-500 text-xs">{bi.quantity} {bi.unit}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-xs">
+                      {(bi.price_at_time * bi.quantity).toLocaleString()} RWF
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }

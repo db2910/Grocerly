@@ -9,7 +9,7 @@ import { fetchWeeklyBaskets, DbWeeklyBasket } from "@/lib/supabase/db";
 export default function WeeklyBasketPage() {
   const [baskets, setBaskets] = useState<DbWeeklyBasket[]>([]);
   const [loading, setLoading] = useState(true);
-  const addItem = useCartStore((s) => s.addItem);
+  const addBasket = useCartStore((s) => s.addBasket);
 
   useEffect(() => {
     async function load() {
@@ -25,25 +25,20 @@ export default function WeeklyBasketPage() {
     const basket = baskets.find((b) => b.id === basketId);
     if (!basket) return;
 
-    // Add each basket item individually to cart
-    basket.items.forEach((item) => {
-      addItem(
-        {
-          id: item.product_id || `item-${item.id}`,
-          name: item.name,
-          price: item.price_at_time,
-          unit: item.unit,
-          imageUrl: "", // Images for basket items are not stored in the items table directly for now
-          source: "Weekly Basket",
-          marketName: "Grocerly Curated",
-          categoryId: "basket",
-        },
-        item.quantity
-      );
+    addBasket({
+      id: basket.id,
+      name: basket.name,
+      total_price: basket.total_price,
+      items: basket.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        price_at_time: item.price_at_time,
+      })),
     });
 
     toast.success(`"${basket.name}" added to cart`, {
-      description: `${basket.items.length} items added`,
+      description: `${basket.items.length} items • ${basket.total_price.toLocaleString()} RWF`,
       action: { label: "View Cart", onClick: () => (window.location.href = "/cart") },
     });
   };

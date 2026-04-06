@@ -16,6 +16,26 @@ export interface DbCategory {
   sort_order: number;
 }
 
+export interface DbSetting {
+  key: string;
+  value: string;
+  label: string | null;
+  updated_at: string;
+}
+
+// Parsed settings for easy use in the app
+export interface AppSettings {
+  standardDeliveryFee: number;
+  expressDeliveryFee: number;
+  expressDeliveryLabel: string;
+}
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  standardDeliveryFee: 1500,
+  expressDeliveryFee: 3500,
+  expressDeliveryLabel: 'Get your order within 60 minutes',
+};
+
 export interface DbMarket {
   id: string;
   name: string;
@@ -112,6 +132,40 @@ export async function fetchCategories(): Promise<DbCategory[]> {
     return [];
   }
   return data ?? [];
+}
+
+// ─── Settings ───────────────────────────────────────────────────────────────
+
+export async function fetchSettings(): Promise<AppSettings> {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('key, value');
+
+  if (error || !data) {
+    console.error('fetchSettings error:', error?.message);
+    return DEFAULT_SETTINGS;
+  }
+
+  const map = Object.fromEntries(data.map((s: { key: string; value: string }) => [s.key, s.value]));
+
+  return {
+    standardDeliveryFee: parseInt(map['standard_delivery_fee'] ?? '1500', 10),
+    expressDeliveryFee:  parseInt(map['express_delivery_fee']  ?? '3500', 10),
+    expressDeliveryLabel: map['express_delivery_label'] ?? DEFAULT_SETTINGS.expressDeliveryLabel,
+  };
+}
+
+export async function updateSetting(key: string, value: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('settings')
+    .update({ value, updated_at: new Date().toISOString() })
+    .eq('key', key);
+
+  if (error) {
+    console.error('updateSetting error:', error.message);
+    return false;
+  }
+  return true;
 }
 
 // ─── Markets ────────────────────────────────────────────────────────────────
@@ -333,7 +387,7 @@ export async function upsertProduct(product: Partial<DbProduct>): Promise<DbProd
 export async function deleteProduct(productId: string): Promise<boolean> {
   const { error } = await supabase
     .from('products')
-    .update({ is_active: false }) // soft delete
+    .delete()
     .eq('id', productId);
 
   if (error) {

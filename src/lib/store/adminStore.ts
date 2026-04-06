@@ -5,6 +5,8 @@ import {
   fetchProducts, 
   fetchMarkets, 
   fetchWeeklyBaskets,
+  fetchSettings,
+  updateSetting,
   updateOrderStatus as dbUpdateOrderStatus,
   upsertProduct as dbUpsertProduct,
   deleteProduct as dbDeleteProduct,
@@ -14,6 +16,8 @@ import {
   deleteWeeklyBasketItem as dbDeleteWeeklyBasketItem,
   upsertMarket as dbUpsertMarket,
   deleteMarket as dbDeleteMarket,
+  AppSettings,
+  DEFAULT_SETTINGS,
   DbOrder,
   DbProduct,
   DbMarket,
@@ -27,6 +31,7 @@ interface AdminState {
   products: DbProduct[];
   markets: DbMarket[];
   weeklyBaskets: DbWeeklyBasket[];
+  settings: AppSettings;
   loading: boolean;
   
   // Lifecycle
@@ -49,6 +54,9 @@ interface AdminState {
   // Market Actions
   saveMarket: (market: Partial<DbMarket>) => Promise<DbMarket | null>;
   deleteMarket: (marketId: string) => Promise<boolean>;
+
+  // Settings Actions
+  updateDeliveryFee: (key: 'standard_delivery_fee' | 'express_delivery_fee' | 'express_delivery_label', value: string) => Promise<boolean>;
   
   // Computed (Getters)
   getPendingOrdersCount: () => number;
@@ -64,18 +72,20 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   products: [],
   markets: [],
   weeklyBaskets: [],
+  settings: DEFAULT_SETTINGS,
   loading: false,
 
   refreshData: async () => {
     set({ loading: true });
     try {
-      const [orders, products, markets, weeklyBaskets] = await Promise.all([
+      const [orders, products, markets, weeklyBaskets, settings] = await Promise.all([
         fetchOrders(),
         fetchProducts(false),
         fetchMarkets(false),
         fetchWeeklyBaskets(false),
+        fetchSettings(),
       ]);
-      set({ orders, products, markets, weeklyBaskets, loading: false });
+      set({ orders, products, markets, weeklyBaskets, settings, loading: false });
     } catch (error) {
       console.error('refreshData error:', error);
       set({ loading: false });
@@ -229,6 +239,16 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       }));
     }
     return success;
+  },
+
+  // Settings Actions
+  updateDeliveryFee: async (key, value) => {
+    const ok = await updateSetting(key, value);
+    if (ok) {
+      const updated = await fetchSettings();
+      set({ settings: updated });
+    }
+    return ok;
   },
 
   // Computed Values
