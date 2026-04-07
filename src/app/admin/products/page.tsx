@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/adminStore";
 import { Search, Plus, Filter, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { fetchCategories, DbCategory } from "@/lib/supabase/db";
+import { fetchCategories, DbCategory, DbProductVariant, fetchVariantsForProduct, upsertProductVariant, deleteProductVariant } from "@/lib/supabase/db";
 import ImageUpload from "@/components/admin/ImageUpload";
+import { toast } from "sonner";
 
 export default function ProductsPage() {
   const { products, saveProduct, deleteProduct, markets, refreshData, loading } = useAdminStore();
@@ -22,6 +23,11 @@ export default function ProductsPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Variant State
+  const [variants, setVariants] = useState<DbProductVariant[]>([]);
+  const [newVariant, setNewVariant] = useState({ name: '', image_url: '', price_override: '' });
+  const [variantSaving, setVariantSaving] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -83,6 +89,8 @@ export default function ProductsPage() {
         image_url: product.image_url || "",
         is_active: product.is_active
       });
+      // Load variants for this product
+      fetchVariantsForProduct(product.id).then(setVariants);
     } else {
       setEditingId(null);
       setFormData({
@@ -94,17 +102,25 @@ export default function ProductsPage() {
         image_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80",
         is_active: true
       });
+      setVariants([]);
     }
+    setNewVariant({ name: '', image_url: '', price_override: '' });
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => setIsModalOpen(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setJustSaved(false);
+  };
+
+  // Track newly-saved banner to guide admin to add variants
+  const [justSaved, setJustSaved] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.price || !formData.category_id) return;
-    
-    await saveProduct({
+    const isNew = !editingId;
+    const saved = await saveProduct({
       id: editingId || undefined,
       name: formData.name,
       category_id: formData.category_id,
@@ -113,9 +129,15 @@ export default function ProductsPage() {
       market_id: formData.market_id || undefined,
       image_url: formData.image_url,
       is_active: formData.is_active,
-    });
-    
-    handleCloseModal();
+    }) as any;
+
+    if (isNew && saved?.id) {
+      // Transition: stay open, enter edit mode so variants section appears
+      setEditingId(saved.id);
+      setJustSaved(true);
+    } else {
+      handleCloseModal();
+    }
   };
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
@@ -375,6 +397,7 @@ export default function ProductsPage() {
                       className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                     >
                       <option value="kg">Per Kg</option>
+                      <option value="g">Per Gram (g)</option>
                       <option value="piece">Per Piece</option>
                       <option value="bunch">Per Bunch</option>
                       <option value="tray">Per Tray</option>
@@ -439,6 +462,131 @@ export default function ProductsPage() {
                     />
                   </div>
                 </div>
+
+                {/* ── Variants Section ── */}
+                {editingId ? (
+                  <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-2 space-y-4">
+
+                    {/* Just-saved success nudge banner */}
+                    {justSaved && (
+                      <div className="flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl">
+                        <span className="material-symbols-outlined text-emerald-500 text-xl mt-0.5">check_circle</span>
+                        <div>
+                          <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">Product saved!</p>
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">You can now add variants (flavours, sizes, etc.) below — or close the modal to finish.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="text-sm font-black text-slate-700 dark:text-slate-300">Product Variants / Options</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">Add flavours, sizes, etc. Each can have its own image and optional price.</p>
+                    </div>
+
+                    {/* Existing Variants */}
+                    {variants.length > 0 && (
+                      <div className="space-y-2">
+                        {variants.map(v => (
+                          <div key={v.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                            {v.image_url ? (
+                              <img src={v.image_url} alt={v.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-slate-400 text-[18px]">image</span>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{v.name}</p>
+                              <p className="text-xs text-slate-500">
+                                {v.price_override ? `${v.price_override.toLocaleString()} RWF` : 'Uses base price'}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const ok = await deleteProductVariant(v.id);
+                                if (ok) { setVariants(vs => vs.filter(x => x.id !== v.id)); toast.success('Variant deleted'); }
+                                else toast.error('Failed to delete variant');
+                              }}
+                              className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add New Variant Form */}
+                    <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 space-y-3">
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Add Variant</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Name (e.g. Mango)"
+                          value={newVariant.name}
+                          onChange={e => setNewVariant(v => ({ ...v, name: e.target.value }))}
+                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Price override (optional)"
+                          value={newVariant.price_override}
+                          onChange={e => setNewVariant(v => ({ ...v, price_override: e.target.value }))}
+                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                        <input
+                          type="url"
+                          placeholder="Image URL (optional)"
+                          value={newVariant.image_url}
+                          onChange={e => setNewVariant(v => ({ ...v, image_url: e.target.value }))}
+                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!newVariant.name || variantSaving}
+                        onClick={async () => {
+                          if (!editingId || !newVariant.name) return;
+                          setVariantSaving(true);
+                          const saved = await upsertProductVariant({
+                            product_id: editingId,
+                            name: newVariant.name,
+                            image_url: newVariant.image_url || null,
+                            price_override: newVariant.price_override ? Number(newVariant.price_override) : null,
+                            sort_order: variants.length,
+                          });
+                          setVariantSaving(false);
+                          if (saved) {
+                            setVariants(vs => [...vs, saved]);
+                            setNewVariant({ name: '', image_url: '', price_override: '' });
+                            toast.success(`Variant "${saved.name}" added`);
+                          } else {
+                            toast.error('Failed to add variant');
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                      >
+                        {variantSaving ? (
+                          <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                        ) : (
+                          <Plus size={16} />
+                        )}
+                        Add Variant
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-2 space-y-4 opacity-50 pointer-events-none">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                        Product Variants / Options
+                        <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-400 uppercase tracking-wider">Save first</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1">Please save this product first to unlock adding variants like flavours or sizes.</p>
+                    </div>
+                  </div>
+                )}
 
               </form>
             </div>

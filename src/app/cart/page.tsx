@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/cartStore";
-import { getUnitStep } from "@/lib/quantityUtils";
+import { getUnitStep, formatQuantityLabel } from "@/lib/quantityUtils";
 import { saveOrder, fetchSettings, DEFAULT_SETTINGS } from "@/lib/supabase/db";
 
 // Inline WhatsApp icon SVG for reuse
@@ -99,10 +99,11 @@ export default function CartPage() {
           text += `  - ${bi.name} (${bi.quantity} ${bi.unit}× ${item.quantity}) — ${lineTotal} RWF\n`;
         });
       } else {
-        const step = getUnitStep(item.unit ?? 'piece');
-        const qtyLabel = step < 1 ? `${item.quantity.toFixed(1)} kg` : `${item.quantity}× ${item.unit}`;
-        const lineTotal = (item.price * item.quantity).toLocaleString();
-        text += `- ${item.name} (${qtyLabel}) — ${lineTotal} RWF\n`;
+        const qtyLabel = formatQuantityLabel(item.quantity, item.unit ?? 'piece');
+        const priceToUse = item.effectivePrice ?? item.price;
+        const lineTotal = (priceToUse * item.quantity).toLocaleString();
+        const itemName = item.variantName ? `${item.name} (${item.variantName})` : item.name;
+        text += `- ${itemName} (${qtyLabel}) — ${lineTotal} RWF\n`;
       }
     });
     text += `\n*Subtotal:* ${subtotal.toLocaleString()} RWF\n`;
@@ -138,10 +139,10 @@ export default function CartPage() {
       return [{
         order_id: '',
         product_id: item.id as string | null,
-        name: item.name,
+        name: item.variantName ? `${item.name} - ${item.variantName}` : item.name,
         quantity: item.quantity,
         unit: item.unit ?? 'piece',
-        price_at_time: item.price,
+        price_at_time: item.effectivePrice ?? item.price,
       }];
     });
 
@@ -220,7 +221,8 @@ export default function CartPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                   {items.map(item => {
-                    const lineTotal = item.price * item.quantity;
+                    const priceToUse = item.effectivePrice ?? item.price;
+                    const lineTotal = priceToUse * item.quantity;
 
                     // ── Basket row ────────────────────────────────────────
                     if (item.isBasket) {
@@ -242,10 +244,8 @@ export default function CartPage() {
 
                     // ── Regular product row ───────────────────────────────
                     const step = getUnitStep(item.unit ?? 'piece');
-                    const isWeight = step < 1;
-                    const qtyLabel = isWeight
-                      ? `${item.quantity.toFixed(1)} kg`
-                      : `${item.quantity} × ${item.unit}`;
+                    const qtyLabel = formatQuantityLabel(item.quantity, item.unit ?? 'piece');
+                    
                     return (
                       <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         {/* Product Info */}
@@ -255,7 +255,10 @@ export default function CartPage() {
                               <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{item.name}</p>
+                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">
+                                {item.name}
+                                {item.variantName && <span className="block text-[11px] font-bold text-primary mt-0.5">{item.variantName}</span>}
+                              </p>
                               <p className="text-xs text-slate-500 mt-0.5">{item.marketName}</p>
                               <button
                                 onClick={() => handleRemove(item.id, item.name)}
@@ -290,7 +293,7 @@ export default function CartPage() {
 
                         {/* Unit price */}
                         <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                          {item.price.toLocaleString()} RWF
+                          {priceToUse.toLocaleString()} RWF
                         </td>
 
                         {/* Line total */}

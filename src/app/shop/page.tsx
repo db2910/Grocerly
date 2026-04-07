@@ -23,6 +23,7 @@ function toProduct(p: DbProduct): Product {
     categoryId: p.categories?.slug ?? p.category_id ?? '',
     isFresh: p.is_fresh,
     isSale: p.is_sale,
+    variants: p.variants,
   };
 }
 

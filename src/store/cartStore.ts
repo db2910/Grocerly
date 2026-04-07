@@ -25,11 +25,15 @@ export interface CartItem extends BaseProduct {
   isBasket?: boolean;
   basketItemCount?: number;
   basketItems?: BasketItemMeta[];
+  // Variant-specific fields
+  variantId?: string;    // ID of the selected variant
+  variantName?: string;  // e.g. "Mango", "500ml"
+  effectivePrice?: number; // variant price_override (if any), else product base price
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: BaseProduct, quantity: number) => void;
+  addItem: (product: BaseProduct, quantity: number, variantId?: string, variantName?: string, effectivePrice?: number) => void;
   addBasket: (basket: {
     id: string;
     name: string;
@@ -47,19 +51,32 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, quantity) => {
+      addItem: (product, quantity, variantId?, variantName?, effectivePrice?) => {
+        // Unique cart key: productId + optional variantId
+        const cartKey = variantId ? `${product.id}__${variantId}` : product.id;
         set((state) => {
-          const existingItem = state.items.find((item) => item.id === product.id);
+          const existingItem = state.items.find((item) => item.id === cartKey);
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.id === product.id
+                item.id === cartKey
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
             };
           }
-          return { items: [...state.items, { ...product, quantity }] };
+          return {
+            items: [...state.items, {
+              ...product,
+              id: cartKey,
+              quantity,
+              variantId,
+              variantName,
+              effectivePrice: effectivePrice ?? product.price,
+              // Override image with variant image if provided
+              imageUrl: product.imageUrl,
+            }],
+          };
         });
       },
 
@@ -107,7 +124,7 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         const { items } = get();
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        return items.reduce((total, item) => total + (item.effectivePrice ?? item.price) * item.quantity, 0);
       },
     }),
     {

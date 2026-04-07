@@ -1,0 +1,176 @@
+'use client';
+
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { useCartStore } from '@/store/cartStore';
+import { DbProductVariant, Product } from '@/lib/supabase/db';
+import { getUnitStep, formatQuantityLabel } from '@/lib/quantityUtils';
+
+interface VariantPickerProps {
+  product: Product;
+  variants: DbProductVariant[];
+  onClose: () => void;
+}
+
+export function VariantPicker({ product, variants, onClose }: VariantPickerProps) {
+  const [selectedVariant, setSelectedVariant] = useState<DbProductVariant>(variants[0]);
+  const step = getUnitStep(product.unit);
+  const [quantity, setQuantity] = useState(step);
+  const addItem = useCartStore((s) => s.addItem);
+
+  const effectivePrice = selectedVariant.price_override ?? product.price;
+
+  const increment = () => setQuantity(q => parseFloat((q + step).toFixed(1)));
+  const decrement = () => setQuantity(q => parseFloat(Math.max(step, q - step).toFixed(1)));
+
+  const handleAdd = () => {
+    addItem(
+      {
+        ...product,
+        // Use the variant image if available, else fall back to product image
+        imageUrl: selectedVariant.image_url ?? product.imageUrl,
+      },
+      quantity,
+      selectedVariant.id,
+      selectedVariant.name,
+      effectivePrice,
+    );
+    toast.success(`${product.name} (${selectedVariant.name}) added to cart`, {
+      description: formatQuantityLabel(quantity, product.unit),
+    });
+    onClose();
+  };
+
+  return (
+    // Backdrop
+    <div
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      {/* Modal */}
+      <div
+        className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between p-6 pb-4">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">{product.name}</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Choose your preferred option</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        {/* Variant Grid */}
+        <div className="px-6 pb-2">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {variants.map((variant) => {
+              const isSelected = variant.id === selectedVariant.id;
+              const variantPrice = variant.price_override ?? product.price;
+              return (
+                <button
+                  key={variant.id}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={`relative flex flex-col overflow-hidden rounded-2xl border-2 transition-all duration-150 text-left ${
+                    isSelected
+                      ? 'border-primary shadow-md shadow-primary/20 scale-[1.02]'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-primary/40'
+                  }`}
+                >
+                  {/* Variant Image */}
+                  <div className="aspect-square bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                    {variant.image_url ? (
+                      <img
+                        src={variant.image_url}
+                        alt={variant.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-slate-300 text-3xl">image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Selected indicator */}
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow">
+                      <span className="material-symbols-outlined text-white text-[14px]">check</span>
+                    </div>
+                  )}
+
+                  {/* Variant Info */}
+                  <div className="p-2.5">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{variant.name}</p>
+                    <p className={`text-xs font-black mt-0.5 ${isSelected ? 'text-primary' : 'text-slate-600 dark:text-slate-300'}`}>
+                      {variantPrice.toLocaleString()} RWF
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="mx-6 my-4 border-t border-slate-100 dark:border-slate-700" />
+
+        {/* Price + Quantity + Add */}
+        <div className="px-6 pb-6">
+          {/* Selected price */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selected</p>
+              <p className="text-lg font-black text-slate-900 dark:text-slate-100">
+                {selectedVariant.name}
+                {selectedVariant.price_override && (
+                  <span className="ml-2 text-sm font-semibold text-primary">
+                    {selectedVariant.price_override.toLocaleString()} RWF / {product.unit}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-black text-primary">{(effectivePrice * quantity).toLocaleString()}</p>
+              <p className="text-xs font-bold text-slate-400">RWF total</p>
+            </div>
+          </div>
+
+          {/* Qty + Add */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 items-center justify-between rounded-xl bg-slate-100 dark:bg-slate-700 px-1 w-32">
+              <button
+                onClick={decrement}
+                className="p-1.5 text-slate-500 hover:text-primary transition-colors flex items-center justify-center w-9 h-9 rounded-lg active:bg-slate-200"
+              >
+                <span className="material-symbols-outlined text-lg">remove</span>
+              </button>
+              <span className="w-8 text-center text-sm font-bold text-slate-700 dark:text-slate-200">
+                {step < 1 ? quantity.toFixed(1) : quantity}
+              </span>
+              <button
+                onClick={increment}
+                className="p-1.5 text-slate-500 hover:text-primary transition-colors flex items-center justify-center w-9 h-9 rounded-lg active:bg-slate-200"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+              </button>
+            </div>
+
+            <button
+              onClick={handleAdd}
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md shadow-primary/30 transition-all hover:bg-primary/90 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

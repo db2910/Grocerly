@@ -408,6 +408,7 @@ export default function WeeklyBasketManagerPage() {
                             className="w-full bg-white dark:bg-slate-800 border border-emerald-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-300"
                           >
                             <option value="kg">kg</option>
+                            <option value="g">g (grams)</option>
                             <option value="piece">piece</option>
                             <option value="bunch">bunch</option>
                             <option value="tray">tray</option>

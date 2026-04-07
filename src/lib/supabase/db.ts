@@ -59,6 +59,7 @@ export interface DbProduct {
   // Joined fields
   categories?: { name: string; slug: string } | null;
   markets?: { name: string } | null;
+  variants?: DbProductVariant[];
 }
 
 // Local Product type for UI/ProductCard compatibility
@@ -73,6 +74,16 @@ export interface Product {
   categoryId: string;
   isFresh: boolean;
   isSale: boolean;
+  variants?: DbProductVariant[];
+}
+
+export interface DbProductVariant {
+  id: string;
+  product_id: string;
+  name: string;
+  image_url: string | null;
+  price_override: number | null; // null = use product base price
+  sort_order: number;
 }
 
 export interface DbWeeklyBasket {
@@ -205,12 +216,62 @@ export async function fetchProducts(activeOnly: boolean = true): Promise<DbProdu
     console.error('fetchProducts error:', error.message);
     return [];
   }
-  return (data ?? []).map((p: any) => ({
+  const products = (data ?? []).map((p: any) => ({
     ...p,
     categories: Array.isArray(p.categories) ? p.categories[0] : p.categories,
-    markets: Array.isArray(p.markets) ? p.markets[0] : p.markets
-  })) as unknown as DbProduct[];
+    markets: Array.isArray(p.markets) ? p.markets[0] : p.markets,
+    variants: [] as DbProductVariant[],
+  })) as DbProduct[];
+
+  // Load variants for all products in one query
+  if (products.length > 0) {
+    const { data: variantsData } = await supabase
+      .from('product_variants')
+      .select('*')
+      .in('product_id', products.map(p => p.id))
+      .order('sort_order');
+    if (variantsData) {
+      const variantsByProduct: Record<string, DbProductVariant[]> = {};
+      for (const v of variantsData) {
+        if (!variantsByProduct[v.product_id]) variantsByProduct[v.product_id] = [];
+        variantsByProduct[v.product_id].push(v as DbProductVariant);
+      }
+      products.forEach(p => { p.variants = variantsByProduct[p.id] ?? []; });
+    }
+  }
+  return products;
 }
+
+// ─── Product Variants ────────────────────────────────────────────────────────
+
+export async function fetchVariantsForProduct(productId: string): Promise<DbProductVariant[]> {
+  const { data, error } = await supabase
+    .from('product_variants')
+    .select('*')
+    .eq('product_id', productId)
+    .order('sort_order');
+  if (error) { console.error('fetchVariantsForProduct error:', error.message); return []; }
+  return data ?? [];
+}
+
+export async function upsertProductVariant(variant: Partial<DbProductVariant>): Promise<DbProductVariant | null> {
+  let query;
+  if (variant.id) {
+    query = supabase.from('product_variants').update(variant).eq('id', variant.id);
+  } else {
+    query = supabase.from('product_variants').insert(variant);
+  }
+  const { data, error } = await query.select('*').single();
+  if (error) { console.error('upsertProductVariant error:', error.message); return null; }
+  return data as DbProductVariant;
+}
+
+export async function deleteProductVariant(variantId: string): Promise<boolean> {
+  const { error } = await supabase.from('product_variants').delete().eq('id', variantId);
+  if (error) { console.error('deleteProductVariant error:', error.message); return false; }
+  return true;
+}
+
 export async function upsertMarket(market: Partial<DbMarket>): Promise<DbMarket | null> {
   let query;
   if (market.id) {
