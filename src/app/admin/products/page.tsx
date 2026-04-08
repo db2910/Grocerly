@@ -520,28 +520,38 @@ export default function ProductsPage() {
                     {/* Add New Variant Form */}
                     <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 space-y-3">
                       <p className="text-xs font-bold text-primary uppercase tracking-widest">Add Variant</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input
-                          type="text"
-                          placeholder="Name (e.g. Mango)"
-                          value={newVariant.name}
-                          onChange={e => setNewVariant(v => ({ ...v, name: e.target.value }))}
-                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                        />
-                        <input
-                          type="number"
-                          placeholder="Price override (optional)"
-                          value={newVariant.price_override}
-                          onChange={e => setNewVariant(v => ({ ...v, price_override: e.target.value }))}
-                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                        />
-                        <input
-                          type="url"
-                          placeholder="Image URL (optional)"
-                          value={newVariant.image_url}
-                          onChange={e => setNewVariant(v => ({ ...v, image_url: e.target.value }))}
-                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                        />
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Name (e.g. Mango)"
+                            value={newVariant.name}
+                            onChange={e => setNewVariant(v => ({ ...v, name: e.target.value }))}
+                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price override (optional)"
+                            value={newVariant.price_override}
+                            onChange={e => setNewVariant(v => ({ ...v, price_override: e.target.value }))}
+                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500">Variant Image (Optional)</label>
+                          <ImageUpload
+                            currentImageUrl={newVariant.image_url}
+                            onUploadComplete={(url) => setNewVariant(v => ({ ...v, image_url: url }))}
+                          />
+                          <input
+                            type="url"
+                            placeholder="Or paste an Image URL directly (Optional)"
+                            value={newVariant.image_url}
+                            onChange={e => setNewVariant(v => ({ ...v, image_url: e.target.value }))}
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 mt-2"
+                          />
+                        </div>
                       </div>
                       <button
                         type="button"
