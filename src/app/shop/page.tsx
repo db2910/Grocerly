@@ -46,6 +46,7 @@ function ShopContent() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Fetch all data from Supabase on mount
   useEffect(() => {
@@ -125,16 +126,14 @@ function ShopContent() {
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-        {/* Sidebar Filters */}
-        <aside className="w-full lg:w-64 shrink-0">
+        {/* Sidebar Filters — Desktop Only */}
+        <aside className="hidden lg:block w-64 shrink-0">
           <div className="sticky top-28 space-y-8">
             <CategoryFilter
               categories={categoryFilterItems}
               selectedCategoryId={selectedCategoryId}
               onSelectCategory={setSelectedCategoryId}
             />
-            {/* MarketFilter hidden until vendor/market feature launches */}
-            {/* <MarketFilter markets={markets} selectedMarket={selectedMarket} onSelectMarket={setSelectedMarket} /> */}
           </div>
         </aside>
 
@@ -201,6 +200,52 @@ function ShopContent() {
           )}
         </div>
       </div>
+
+      {/* Mobile Floating Filter Button */}
+      <button
+        onClick={() => setIsDrawerOpen(true)}
+        className="lg:hidden fixed bottom-8 right-6 z-[60] flex items-center gap-2 bg-primary text-white px-5 py-3.5 rounded-2xl font-black shadow-xl shadow-primary/40 active:scale-95 transition-all"
+      >
+        <span className="material-symbols-outlined text-[20px]">tune</span>
+        Categories
+      </button>
+
+      {/* Mobile Category Drawer (Bottom Sheet) */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-[70] lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setIsDrawerOpen(false)}
+          />
+          
+          {/* Sheet */}
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-[32px] p-6 pb-12 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 italic">Categories</h2>
+              <button 
+                onClick={() => setIsDrawerOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-full bg-slate-50 dark:bg-slate-700"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto">
+              <CategoryFilter
+                categories={categoryFilterItems}
+                selectedCategoryId={selectedCategoryId}
+                onSelectCategory={(id) => {
+                  setSelectedCategoryId(id);
+                  setIsDrawerOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

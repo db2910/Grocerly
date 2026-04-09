@@ -266,6 +266,7 @@ function OrderDetailModal({
     }) + " at " + new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   const itemsTotal = order.items?.reduce((s, i) => s + (i.subtotal ?? i.price_at_time * i.quantity), 0) ?? order.total_amount;
+  const deducedDeliveryFee = Math.max(0, order.total_amount - itemsTotal);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
@@ -382,10 +383,7 @@ function OrderDetailModal({
               <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Delivery Fee {order.express_delivery && <span className="text-xs text-primary ml-1">(Express)</span>}</span>
                 <span>
-                  {(order.express_delivery 
-                    ? settings.standardDeliveryFee + settings.expressDeliveryFee 
-                    : settings.standardDeliveryFee
-                  ).toLocaleString()} RWF
+                  {deducedDeliveryFee.toLocaleString()} RWF
                 </span>
               </div>
               <div className="flex justify-between font-black text-lg text-slate-900 dark:text-slate-100 pt-2 border-t border-slate-200 dark:border-slate-700">

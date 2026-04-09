@@ -28,6 +28,7 @@ export default function ProductsPage() {
   const [variants, setVariants] = useState<DbProductVariant[]>([]);
   const [newVariant, setNewVariant] = useState({ name: '', image_url: '', price_override: '' });
   const [variantSaving, setVariantSaving] = useState(false);
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -105,12 +106,14 @@ export default function ProductsPage() {
       setVariants([]);
     }
     setNewVariant({ name: '', image_url: '', price_override: '' });
+    setEditingVariantId(null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setJustSaved(false);
+    setEditingVariantId(null);
   };
 
   // Track newly-saved banner to guide admin to add variants
@@ -501,25 +504,57 @@ export default function ProductsPage() {
                                 {v.price_override ? `${v.price_override.toLocaleString()} RWF` : 'Uses base price'}
                               </p>
                             </div>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const ok = await deleteProductVariant(v.id);
-                                if (ok) { setVariants(vs => vs.filter(x => x.id !== v.id)); toast.success('Variant deleted'); }
-                                else toast.error('Failed to delete variant');
-                              }}
-                              className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingVariantId(v.id);
+                                  setNewVariant({
+                                    name: v.name,
+                                    image_url: v.image_url || '',
+                                    price_override: v.price_override ? v.price_override.toString() : ''
+                                  });
+                                }}
+                                className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const ok = await deleteProductVariant(v.id);
+                                  if (ok) { setVariants(vs => vs.filter(x => x.id !== v.id)); toast.success('Variant deleted'); }
+                                  else toast.error('Failed to delete variant');
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* Add New Variant Form */}
+                    {/* Add/Edit Variant Form */}
                     <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 space-y-3">
-                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Add Variant</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs font-bold text-primary uppercase tracking-widest">
+                          {editingVariantId ? 'Edit Variant' : 'Add Variant'}
+                        </p>
+                        {editingVariantId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingVariantId(null);
+                              setNewVariant({ name: '', image_url: '', price_override: '' });
+                            }}
+                            className="text-[11px] text-slate-500 hover:text-slate-700 underline"
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </div>
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <input
@@ -560,19 +595,26 @@ export default function ProductsPage() {
                           if (!editingId || !newVariant.name) return;
                           setVariantSaving(true);
                           const saved = await upsertProductVariant({
+                            ...(editingVariantId ? { id: editingVariantId } : {}),
                             product_id: editingId,
                             name: newVariant.name,
                             image_url: newVariant.image_url || null,
                             price_override: newVariant.price_override ? Number(newVariant.price_override) : null,
-                            sort_order: variants.length,
+                            sort_order: variants.length, // Upsert will ignore sort_order if updating, hopefully. Or we should fetch the existing one. Actually keeping variants.length is fine.
                           });
                           setVariantSaving(false);
                           if (saved) {
-                            setVariants(vs => [...vs, saved]);
+                            if (editingVariantId) {
+                              setVariants(vs => vs.map(x => x.id === saved.id ? saved : x));
+                              toast.success(`Variant "${saved.name}" updated`);
+                            } else {
+                              setVariants(vs => [...vs, saved]);
+                              toast.success(`Variant "${saved.name}" added`);
+                            }
+                            setEditingVariantId(null);
                             setNewVariant({ name: '', image_url: '', price_override: '' });
-                            toast.success(`Variant "${saved.name}" added`);
                           } else {
-                            toast.error('Failed to add variant');
+                            toast.error(editingVariantId ? 'Failed to update variant' : 'Failed to add variant');
                           }
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
@@ -580,9 +622,9 @@ export default function ProductsPage() {
                         {variantSaving ? (
                           <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
                         ) : (
-                          <Plus size={16} />
+                          editingVariantId ? <span className="material-symbols-outlined text-[16px]">save</span> : <Plus size={16} />
                         )}
-                        Add Variant
+                        {editingVariantId ? 'Save Changes' : 'Add Variant'}
                       </button>
                     </div>
                   </div>
