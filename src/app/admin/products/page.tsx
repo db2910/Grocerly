@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/adminStore";
-import { Search, Plus, Filter, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Filter, Edit, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import Image from "next/image";
-import { fetchCategories, DbCategory, DbProductVariant, fetchVariantsForProduct, upsertProductVariant, deleteProductVariant } from "@/lib/supabase/db";
+import { fetchCategories, DbCategory, DbProductVariant, fetchVariantsForProduct, upsertProductVariant, deleteProductVariant, updateVariantSortOrder } from "@/lib/supabase/db";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
 
@@ -105,9 +105,29 @@ export default function ProductsPage() {
       });
       setVariants([]);
     }
-    setNewVariant({ name: '', image_url: '', price_override: '' });
     setEditingVariantId(null);
     setIsModalOpen(true);
+  };
+
+  const handleMoveVariant = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= variants.length) return;
+
+    const newVariants = [...variants];
+    const [movedItem] = newVariants.splice(index, 1);
+    newVariants.splice(newIndex, 0, movedItem);
+
+    // Optimistic UI update
+    setVariants(newVariants);
+
+    // Persistent updates
+    const v1 = variants[index];
+    const v2 = variants[newIndex];
+    // Swap their sort_orders
+    await Promise.all([
+      updateVariantSortOrder(v1.id, newIndex),
+      updateVariantSortOrder(v2.id, index)
+    ]);
   };
 
   const handleCloseModal = () => {
@@ -489,7 +509,7 @@ export default function ProductsPage() {
                     {/* Existing Variants */}
                     {variants.length > 0 && (
                       <div className="space-y-2">
-                        {variants.map(v => (
+                        {variants.map((v, index) => (
                           <div key={v.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
                             {v.image_url ? (
                               <img src={v.image_url} alt={v.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
@@ -504,7 +524,26 @@ export default function ProductsPage() {
                                 {v.price_override ? `${v.price_override.toLocaleString()} RWF` : 'Uses base price'}
                               </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                disabled={index === 0}
+                                onClick={() => handleMoveVariant(index, 'up')}
+                                className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-20"
+                                title="Move Up"
+                              >
+                                <ArrowUp size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === variants.length - 1}
+                                onClick={() => handleMoveVariant(index, 'down')}
+                                className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-20"
+                                title="Move Down"
+                              >
+                                <ArrowDown size={16} />
+                              </button>
+                              <div className="w-[1px] h-6 bg-slate-100 dark:bg-slate-800 mx-1 self-center" />
                               <button
                                 type="button"
                                 onClick={() => {

@@ -272,6 +272,15 @@ export async function deleteProductVariant(variantId: string): Promise<boolean> 
   return true;
 }
 
+export async function updateVariantSortOrder(variantId: string, sortOrder: number): Promise<boolean> {
+  const { error } = await supabase
+    .from('product_variants')
+    .update({ sort_order: sortOrder })
+    .eq('id', variantId);
+  if (error) { console.error('updateVariantSortOrder error:', error.message); return false; }
+  return true;
+}
+
 export async function upsertMarket(market: Partial<DbMarket>): Promise<DbMarket | null> {
   let query;
   if (market.id) {
