@@ -8,8 +8,43 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Grocerly - Fresh Local Groceries",
-  description: "Fresh groceries from local markets, delivered to you.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://grocerly-sigma.vercel.app'),
+  title: {
+    template: "%s | Grocerly",
+    default: "Grocerly - Fresh Local Groceries",
+  },
+  description: "Fresh groceries from local markets, delivered to you in Kigali.",
+  icons: {
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+    ],
+  },
+  manifest: '/site.webmanifest',
+  openGraph: {
+    title: "Grocerly - Fresh Local Groceries",
+    description: "Fresh groceries from local markets, delivered to you in Kigali.",
+    siteName: "Grocerly",
+    images: [
+      {
+        url: "/logo.jpeg",
+        width: 800,
+        height: 800,
+        alt: "Grocerly Logo",
+      }
+    ],
+    locale: "en_RW",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Grocerly - Fresh Local Groceries",
+    description: "Fresh groceries from local markets, delivered to you in Kigali.",
+    images: ["/logo.jpeg"],
+  },
 };
 
 import { SiteShell } from "@/components/layout/SiteShell";
