@@ -19,20 +19,26 @@ export interface BasketItemMeta {
   price_at_time: number;
 }
 
+export interface CartVariantSelection {
+  variantId: string;
+  variantName: string;
+  quantity: number;
+  price: number;
+}
+
 export interface CartItem extends BaseProduct {
   quantity: number;
-  // Basket-specific fields — only present when isBasket = true
+  // Basket-specific fields
   isBasket?: boolean;
   basketItemCount?: number;
   basketItems?: BasketItemMeta[];
-  // Variant-specific fields
-  variantId?: string;    // ID of the selected variant
-  variantName?: string;  // e.g. "Mango", "500ml"
-  effectivePrice?: number; // variant price_override (if any), else product base price
+  // Grouped Variant selections
+  selectedVariants?: CartVariantSelection[];
 }
 
 interface CartState {
   items: CartItem[];
+  // addItem now accepts an optional variant or a batch of variants
   addItem: (product: BaseProduct, quantity: number, variantId?: string, variantName?: string, effectivePrice?: number) => void;
   addBasket: (basket: {
     id: string;
@@ -41,7 +47,7 @@ interface CartState {
     items: BasketItemMeta[];
   }) => void;
   removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
   getTotal: () => number;
 }
@@ -52,29 +58,73 @@ export const useCartStore = create<CartState>()(
       items: [],
 
       addItem: (product, quantity, variantId?, variantName?, effectivePrice?) => {
-        // Unique cart key: productId + optional variantId
-        const cartKey = variantId ? `${product.id}__${variantId}` : product.id;
         set((state) => {
-          const existingItem = state.items.find((item) => item.id === cartKey);
+          const productId = product.id;
+          const existingItem = state.items.find((item) => item.id === productId);
+
+          // 1. Handling items WITH variants
+          if (variantId && variantName) {
+            const price = effectivePrice ?? product.price;
+            const newSelection: CartVariantSelection = {
+              variantId,
+              variantName,
+              quantity,
+              price
+            };
+
+            if (existingItem) {
+              const variants = existingItem.selectedVariants || [];
+              const variantIndex = variants.findIndex(v => v.variantId === variantId);
+
+              let updatedVariants;
+              if (variantIndex > -1) {
+                // Update existing variant quantity inside this product
+                updatedVariants = [...variants];
+                updatedVariants[variantIndex] = {
+                  ...updatedVariants[variantIndex],
+                  quantity: updatedVariants[variantIndex].quantity + quantity
+                };
+              } else {
+                // Add new variant type to this product
+                updatedVariants = [...variants, newSelection];
+              }
+
+              return {
+                items: state.items.map((item) =>
+                  item.id === productId
+                    ? { ...item, selectedVariants: updatedVariants, quantity: updatedVariants.reduce((sum, v) => sum + v.quantity, 0) }
+                    : item
+                ),
+              };
+            }
+
+            // Create new product entry with this first variant
+            return {
+              items: [...state.items, {
+                ...product,
+                id: productId,
+                quantity: quantity,
+                selectedVariants: [newSelection],
+              }],
+            };
+          }
+
+          // 2. Handling standard items (NO variants)
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.id === cartKey
+                item.id === productId
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
             };
           }
+
           return {
             items: [...state.items, {
               ...product,
-              id: cartKey,
+              id: productId,
               quantity,
-              variantId,
-              variantName,
-              effectivePrice: effectivePrice ?? product.price,
-              // Override image with variant image if provided
-              imageUrl: product.imageUrl,
             }],
           };
         });
@@ -84,10 +134,8 @@ export const useCartStore = create<CartState>()(
         const basketId = `basket-${basket.id}`;
         set((state) => {
           const existing = state.items.find((item) => item.id === basketId);
-          if (existing) {
-            // "one per order" rule — don't increment if already exists
-            return state;
-          }
+          if (existing) return state;
+
           const basketItem: CartItem = {
             id: basketId,
             name: basket.name,
@@ -112,11 +160,26 @@ export const useCartStore = create<CartState>()(
         }));
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, variantId?) => {
         set((state) => ({
-          items: state.items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
-          ),
+          items: state.items.map((item) => {
+            if (item.id !== productId) return item;
+
+            if (variantId && item.selectedVariants) {
+              const updatedVariants = item.selectedVariants.map(v => 
+                v.variantId === variantId ? { ...v, quantity } : v
+              ).filter(v => v.quantity > 0);
+
+              // If no variants left, the item will likely be removed or kept as 0
+              return { 
+                ...item, 
+                selectedVariants: updatedVariants,
+                quantity: updatedVariants.reduce((sum, v) => sum + v.quantity, 0)
+              };
+            }
+
+            return { ...item, quantity };
+          }).filter(item => item.quantity > 0) // Remove product if total quantity hits 0
         }));
       },
 
@@ -124,7 +187,13 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         const { items } = get();
-        return items.reduce((total, item) => total + (item.effectivePrice ?? item.price) * item.quantity, 0);
+        return items.reduce((total, item) => {
+          if (item.selectedVariants && item.selectedVariants.length > 0) {
+            const variantTotal = item.selectedVariants.reduce((vSum, v) => vSum + (v.price * v.quantity), 0);
+            return total + variantTotal;
+          }
+          return total + (item.price * item.quantity);
+        }, 0);
       },
     }),
     {

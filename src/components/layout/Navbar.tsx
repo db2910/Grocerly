@@ -10,7 +10,7 @@ import { CustomOrderModal } from "@/components/CustomOrderModal";
 
 export function Navbar() {
   const items = useCartStore((state) => state.items);
-  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const cartItemCount = items.length;
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);

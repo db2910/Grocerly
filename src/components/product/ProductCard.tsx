@@ -41,6 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <img
             src={product.imageUrl}
             alt={product.name}
+            loading="lazy"
             className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
           />
           <div className="absolute top-3 left-3 flex flex-col gap-2">

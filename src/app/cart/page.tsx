@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useCartStore } from "@/store/cartStore";
+import { useCartStore, CartItem } from "@/store/cartStore";
 import { getUnitStep, formatQuantityLabel } from "@/lib/quantityUtils";
-import { saveOrder, fetchSettings, DEFAULT_SETTINGS } from "@/lib/supabase/db";
+import { saveOrder, fetchSettings, DEFAULT_SETTINGS, OrderItemPayload } from "@/lib/supabase/db";
 
 // Inline WhatsApp icon SVG for reuse
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -19,7 +19,6 @@ function WhatsAppIcon({ className }: { className?: string }) {
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
 
-  // Delivery fees loaded from DB — fallback to defaults while loading
   const [fees, setFees] = useState(DEFAULT_SETTINGS);
   useEffect(() => {
     fetchSettings().then(setFees);
@@ -40,29 +39,24 @@ export default function CartPage() {
   const deliveryFee = fees.standardDeliveryFee + (expressDelivery ? fees.expressDeliveryFee : 0);
   const totalAmount = subtotal + deliveryFee;
 
-  // Validation helpers
   const isFormValid = form.name.trim() && form.phone.trim() && form.location.trim();
   const canCheckout = items.length > 0 && isFormValid;
 
-  const fieldErr = (field: 'name' | 'phone' | 'location') =>
-    touched[field] && !form[field].trim();
+  const fieldErr = (field: 'name' | 'phone' | 'location') => touched[field] && !form[field].trim();
+  const handleBlur = (field: 'name' | 'phone' | 'location') => setTouched(t => ({ ...t, [field]: true }));
 
-  const handleBlur = (field: 'name' | 'phone' | 'location') =>
-    setTouched(t => ({ ...t, [field]: true }));
-
-  // Step-aware quantity controls inside the cart
-  const handleDecrement = (id: string, currentQty: number, unit: string) => {
+  const handleDecrement = (id: string, currentQty: number, unit: string, variantId?: string) => {
     const step = getUnitStep(unit);
-    const next = parseFloat(Math.max(step, currentQty - step).toFixed(1));
-    updateQuantity(id, next);
-    toast.info('Quantity decreased');
+    const next = parseFloat(Math.max(0, currentQty - step).toFixed(1));
+    updateQuantity(id, next, variantId);
+    toast.info('Quantity updated');
   };
 
-  const handleIncrement = (id: string, currentQty: number, unit: string) => {
+  const handleIncrement = (id: string, currentQty: number, unit: string, variantId?: string) => {
     const step = getUnitStep(unit);
     const next = parseFloat((currentQty + step).toFixed(1));
-    updateQuantity(id, next);
-    toast.info('Quantity increased');
+    updateQuantity(id, next, variantId);
+    toast.info('Quantity updated');
   };
 
   const handleRemove = (id: string, name: string) => {
@@ -70,7 +64,6 @@ export default function CartPage() {
     toast.error(`${name} removed from cart`);
   };
 
-  // Build and open the WhatsApp link — also saves the order to Supabase
   const handleCheckout = async () => {
     if (!isFormValid) {
       setTouched({ name: true, phone: true, location: true });
@@ -90,99 +83,90 @@ export default function CartPage() {
     text += `\n*Delivery Location:* ${form.location}\n`;
     text += `*Express Delivery:* ${expressDelivery ? `Yes (+${fees.expressDeliveryFee.toLocaleString()} RWF surcharge)` : 'No'}\n\n`;
     text += `*Items:*\n`;
+    
     items.forEach(item => {
       if (item.isBasket && item.basketItems) {
-        // Expand basket items so admin sees each product
-        text += `\n🧺 *${item.name}* (×${item.quantity} basket${item.quantity > 1 ? 's' : ''})\n`;
+        text += `\n🧺 *${item.name}* (×${item.quantity})\n`;
         item.basketItems.forEach(bi => {
           const lineTotal = (bi.price_at_time * bi.quantity * item.quantity).toLocaleString();
           text += `  - ${bi.name} (${bi.quantity} ${bi.unit}× ${item.quantity}) — ${lineTotal} RWF\n`;
         });
+      } else if (item.selectedVariants && item.selectedVariants.length > 0) {
+        const productTotal = item.selectedVariants.reduce((sum, v) => sum + (v.price * v.quantity), 0).toLocaleString();
+        text += `\n📦 *${item.name}* — ${productTotal} RWF\n`;
+        item.selectedVariants.forEach(v => {
+           const label = formatQuantityLabel(v.quantity, item.unit ?? 'piece');
+           text += `  - ${v.variantName} (${label})\n`;
+        });
       } else {
         const qtyLabel = formatQuantityLabel(item.quantity, item.unit ?? 'piece');
-        const priceToUse = item.effectivePrice ?? item.price;
-        const lineTotal = (priceToUse * item.quantity).toLocaleString();
-        const itemName = item.variantName ? `${item.name} (${item.variantName})` : item.name;
-        text += `- ${itemName} (${qtyLabel}) — ${lineTotal} RWF\n`;
+        const lineTotal = (item.price * item.quantity).toLocaleString();
+        text += `- ${item.name} (${qtyLabel}) — ${lineTotal} RWF\n`;
       }
     });
+
     text += `\n*Subtotal:* ${subtotal.toLocaleString()} RWF\n`;
     text += `*Delivery Fee:* ${deliveryFee.toLocaleString()} RWF\n`;
     text += `*Total:* ${totalAmount.toLocaleString()} RWF\n`;
     text += `\nPlease confirm availability and delivery time. Thank you!`;
 
-    // ── Save order to Supabase ──────────────────────────────────────────────
     const now = new Date().toISOString();
-    
     const hasBasketItems = items.some(i => i.categoryId === 'basket');
     const orderType = hasBasketItems ? 'basket' : 'standard';
 
-    // Flatten basket items for order_items storage
-    const flatItems: Array<{
-      order_id: string;
-      product_id: string | null;
-      name: string;
-      quantity: number;
-      unit: string;
-      price_at_time: number;
-    }> = items.flatMap(item => {
+    const flatItems: OrderItemPayload[] = items.flatMap((item): OrderItemPayload[] => {
       if (item.isBasket && item.basketItems) {
         return item.basketItems.map(bi => ({
           order_id: '',
-          product_id: null as null,
+          product_id: null,
           name: bi.name,
           quantity: bi.quantity * item.quantity,
           unit: bi.unit,
           price_at_time: bi.price_at_time,
         }));
       }
+      if (item.selectedVariants && item.selectedVariants.length > 0) {
+        return item.selectedVariants.map(v => ({
+          order_id: '',
+          product_id: item.id,
+          name: `${item.name} - ${v.variantName}`,
+          quantity: v.quantity,
+          unit: item.unit ?? 'piece',
+          price_at_time: v.price,
+        }));
+      }
       return [{
         order_id: '',
-        product_id: item.id as string | null,
-        name: item.variantName ? `${item.name} - ${item.variantName}` : item.name,
+        product_id: item.id,
+        name: item.name,
         quantity: item.quantity,
         unit: item.unit ?? 'piece',
-        price_at_time: item.effectivePrice ?? item.price,
+        price_at_time: item.price,
       }];
     });
 
-    const { success } = await saveOrder(
-      {
-        customer_name:     form.name,
-        customer_phone:    form.phone,
-        delivery_location: form.location,
-        is_gift:           isGift,
-        recipient_name:    isGift ? form.recipientName : undefined,
-        recipient_phone:   isGift ? form.recipientPhone : undefined,
-        express_delivery:  expressDelivery,
-        order_type:        orderType,
-        total_amount:      totalAmount,
-        whatsapp_sent:     true,
-        whatsapp_sent_at:  now,
-      },
-      flatItems
-    );
+    const { success } = await saveOrder({
+      customer_name: form.name,
+      customer_phone: form.phone,
+      delivery_location: form.location,
+      is_gift: isGift,
+      recipient_name: isGift ? form.recipientName : undefined,
+      recipient_phone: isGift ? form.recipientPhone : undefined,
+      express_delivery: expressDelivery,
+      order_type: orderType,
+      total_amount: totalAmount,
+      whatsapp_sent: true,
+      whatsapp_sent_at: now,
+    }, flatItems);
 
-    if (!success) {
-      console.warn('Order DB save failed — WhatsApp still sent');
-    }
-    // ────────────────────────────────────────────────────────────────────────
-
+    if (!success) console.warn('Order DB save failed');
     window.open(`https://wa.me/${adminNumber}?text=${encodeURIComponent(text)}`, '_blank');
-    
-    // Auto-clear the cart after a short delay so user can transition gracefully
-    setTimeout(() => {
-      clearCart();
-    }, 1500);
+    setTimeout(() => clearCart(), 1500);
   };
 
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 w-full px-4 sm:px-6 py-8">
-
-      {/* ── Left Column ───────────────────────────────────────────── */}
       <div className="lg:col-span-8 flex flex-col gap-8">
-
-        {/* Breadcrumb + Heading */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-primary/70 text-sm font-medium">
             <Link className="hover:underline" href="/">Home</Link>
@@ -193,13 +177,10 @@ export default function CartPage() {
           <p className="text-slate-600 dark:text-slate-400">Review items, fill delivery details, and send your order.</p>
         </div>
 
-        {/* ── Cart Items Table ── */}
         <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-primary/10 overflow-hidden">
           <div className="p-5 border-b border-primary/5 flex justify-between items-center">
             <h2 className="text-lg font-bold">Itemized List</h2>
-            <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
-              {items.length} {items.length === 1 ? 'item' : 'items'}
-            </span>
+            <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">{items.length} Product{items.length !== 1 ? 's' : ''}</span>
           </div>
 
           {items.length === 0 ? (
@@ -215,374 +196,167 @@ export default function CartPage() {
                   <tr>
                     <th className="px-5 py-3">Product</th>
                     <th className="px-5 py-3 text-center">Quantity</th>
-                    <th className="px-5 py-3 text-right">Unit Price</th>
                     <th className="px-5 py-3 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                   {items.map(item => {
-                    const priceToUse = item.effectivePrice ?? item.price;
-                    const lineTotal = priceToUse * item.quantity;
+                    const lineTotal = item.selectedVariants 
+                      ? item.selectedVariants.reduce((s, v) => s + (v.price * v.quantity), 0)
+                      : (item.price * item.quantity);
 
-                    // ── Basket row ────────────────────────────────────────
-                    if (item.isBasket) {
-                      return (
-                        <BasketCartRow
-                          key={item.id}
-                          item={item}
-                          lineTotal={lineTotal}
-                          onRemove={() => handleRemove(item.id, item.name)}
-                          onDecrement={() => {
-                            // "one per order" rule — decrementing is not allowed, use remove button
-                          }}
-                          onIncrement={() => {
-                            // "one per order" rule — incrementing is not allowed
-                          }}
-                        />
-                      );
-                    }
+                    if (item.isBasket) return <BasketCartRow key={item.id} item={item} lineTotal={lineTotal} onRemove={() => handleRemove(item.id, item.name)} />;
 
-                    // ── Regular product row ───────────────────────────────
-                    const step = getUnitStep(item.unit ?? 'piece');
-                    const qtyLabel = formatQuantityLabel(item.quantity, item.unit ?? 'piece');
-                    
                     return (
                       <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        {/* Product Info */}
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="size-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                        <td className="px-5 py-4 align-top">
+                          <div className="flex items-start gap-3">
+                            <div className="size-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 mt-1">
                               <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
                             </div>
-                            <div>
-                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">
-                                {item.name}
-                                {item.variantName && <span className="block text-[11px] font-bold text-primary mt-0.5">{item.variantName}</span>}
-                              </p>
-                              <p className="text-xs text-slate-500 mt-0.5">{item.marketName}</p>
-                              <button
-                                onClick={() => handleRemove(item.id, item.name)}
-                                className="text-[11px] text-red-400 hover:text-red-600 font-semibold mt-1 transition-colors"
-                              >
-                                Remove
-                              </button>
+                            <div className="flex-1">
+                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{item.name}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{item.marketName}</p>
+                              
+                              {/* Nested Variants Display */}
+                              {item.selectedVariants && item.selectedVariants.length > 0 && (
+                                <div className="mt-3 flex flex-col gap-2">
+                                  {item.selectedVariants.map(v => (
+                                    <div key={v.variantId} className="flex flex-col gap-1 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                                      <div className="flex justify-between items-center text-[11px] font-bold">
+                                        <span className="text-primary">{v.variantName}</span>
+                                        <span className="text-slate-400">{v.price.toLocaleString()} RWF</span>
+                                      </div>
+                                      <div className="flex justify-between items-center">
+                                        <div className="inline-flex items-center gap-1 h-7 bg-white dark:bg-slate-900 rounded-md px-1 border border-slate-200">
+                                          <button onClick={() => handleDecrement(item.id, v.quantity, item.unit ?? 'piece', v.variantId)} className="w-5 h-5 flex items-center justify-center hover:text-primary"><span className="material-symbols-outlined text-xs">remove</span></button>
+                                          <span className="text-[11px] font-black min-w-4 text-center">{formatQuantityLabel(v.quantity, item.unit ?? 'piece')}</span>
+                                          <button onClick={() => handleIncrement(item.id, v.quantity, item.unit ?? 'piece', v.variantId)} className="w-5 h-5 flex items-center justify-center hover:text-primary"><span className="material-symbols-outlined text-xs">add</span></button>
+                                        </div>
+                                        <span className="text-[11px] font-black">{(v.price * v.quantity).toLocaleString()} RWF</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              <button onClick={() => handleRemove(item.id, item.name)} className="text-[11px] text-red-400 hover:text-red-600 font-semibold mt-2 transition-colors">Delete Item</button>
                             </div>
                           </div>
                         </td>
 
-                        {/* Quantity stepper */}
-                        <td className="px-5 py-4 text-center">
-                          <div className="inline-flex items-center gap-1 h-9 bg-slate-100 dark:bg-slate-800 rounded-lg px-1">
-                            <button
-                              onClick={() => handleDecrement(item.id, item.quantity, item.unit ?? 'piece')}
-                              className="w-7 h-7 flex items-center justify-center hover:text-primary transition-colors rounded"
-                            >
-                              <span className="material-symbols-outlined text-base">remove</span>
-                            </button>
-                            <span className="w-auto px-2 text-center text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                               {qtyLabel}
-                             </span>
-                            <button
-                              onClick={() => handleIncrement(item.id, item.quantity, item.unit ?? 'piece')}
-                              className="w-7 h-7 flex items-center justify-center hover:text-primary transition-colors rounded"
-                            >
-                              <span className="material-symbols-outlined text-base">add</span>
-                            </button>
-                          </div>
+                        <td className="px-5 py-4 text-center align-top pt-5">
+                          {!item.selectedVariants && (
+                            <div className="inline-flex items-center gap-1 h-9 bg-slate-100 dark:bg-slate-800 rounded-lg px-1">
+                              <button onClick={() => handleDecrement(item.id, item.quantity, item.unit ?? 'piece')} className="w-7 h-7 flex items-center justify-center hover:text-primary"><span className="material-symbols-outlined text-base">remove</span></button>
+                              <span className="px-2 text-sm font-bold">{formatQuantityLabel(item.quantity, item.unit ?? 'piece')}</span>
+                              <button onClick={() => handleIncrement(item.id, item.quantity, item.unit ?? 'piece')} className="w-7 h-7 flex items-center justify-center hover:text-primary"><span className="material-symbols-outlined text-base">add</span></button>
+                            </div>
+                          )}
+                          {item.selectedVariants && (
+                            <span className="text-sm font-black text-slate-400">{item.selectedVariants.length} types</span>
+                          )}
                         </td>
 
-                        {/* Unit price */}
-                        <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                          {priceToUse.toLocaleString()} RWF
-                        </td>
-
-                        {/* Line total */}
-                        <td className="px-5 py-4 text-right font-black text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                          {lineTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} RWF
+                        <td className="px-5 py-4 text-right font-black text-slate-900 dark:text-slate-100 align-top pt-6">
+                          {lineTotal.toLocaleString()} RWF
                         </td>
                       </tr>
                     );
                   })}
-
                 </tbody>
               </table>
             </div>
           )}
         </section>
 
-        {/* ── Delivery Information ── */}
         <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-primary/10 p-6">
           <div className="flex items-center gap-2 mb-6 border-b border-primary/5 pb-4">
             <span className="material-symbols-outlined text-primary">local_shipping</span>
             <h2 className="text-xl font-bold">Delivery Information</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-            {/* Name */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Your Full Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                onBlur={() => handleBlur('name')}
-                className={`rounded-lg h-12 px-4 outline-none text-sm transition-colors border ${fieldErr('name') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-700 bg-primary/5 focus:border-primary'}`}
-                placeholder="John Doe"
-                type="text"
-              />
-              {fieldErr('name') && <p className="text-xs text-red-500 font-medium">Name is required</p>}
+              <label className="text-sm font-bold">Your Full Name <span className="text-red-500">*</span></label>
+              <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} onBlur={() => handleBlur('name')} className={`rounded-lg h-12 px-4 outline-none border ${fieldErr('name') ? 'border-red-400' : 'border-slate-200'}`} placeholder="John Doe" type="text" />
             </div>
-
-            {/* Phone */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.phone}
-                onChange={e => setForm({ ...form, phone: e.target.value })}
-                onBlur={() => handleBlur('phone')}
-                className={`rounded-lg h-12 px-4 outline-none text-sm transition-colors border ${fieldErr('phone') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-700 bg-primary/5 focus:border-primary'}`}
-                placeholder="+250 7XX XXX XXX"
-                type="tel"
-              />
-              {fieldErr('phone') && <p className="text-xs text-red-500 font-medium">Phone number is required</p>}
+              <label className="text-sm font-bold">Phone Number <span className="text-red-500">*</span></label>
+              <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} onBlur={() => handleBlur('phone')} className={`rounded-lg h-12 px-4 outline-none border ${fieldErr('phone') ? 'border-red-400' : 'border-slate-200'}`} placeholder="+250 7XX XXX XXX" type="tel" />
             </div>
-
-            {/* Location */}
             <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Delivery Location <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.location}
-                onChange={e => setForm({ ...form, location: e.target.value })}
-                onBlur={() => handleBlur('location')}
-                className={`rounded-lg h-12 px-4 outline-none text-sm transition-colors border ${fieldErr('location') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-700 bg-primary/5 focus:border-primary'}`}
-                placeholder="Kigali, Nyarugenge"
-                type="text"
-              />
-              {fieldErr('location') && <p className="text-xs text-red-500 font-medium">Delivery location is required</p>}
+              <label className="text-sm font-bold">Delivery Location <span className="text-red-500">*</span></label>
+              <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} onBlur={() => handleBlur('location')} className={`rounded-lg h-12 px-4 outline-none border ${fieldErr('location') ? 'border-red-400' : 'border-slate-200'}`} placeholder="Kigali, Nyarugenge" type="text" />
             </div>
           </div>
-
-          {/* Gift Option */}
           <div className="bg-primary/5 p-5 rounded-xl border-2 border-dashed border-primary/20 mb-5">
             <div className="flex items-center gap-3 mb-4">
-              <input
-                checked={isGift}
-                onChange={e => setIsGift(e.target.checked)}
-                className="size-5 rounded border-primary text-primary focus:ring-primary accent-primary"
-                id="gift"
-                type="checkbox"
-              />
-              <label className="font-bold text-slate-800 dark:text-slate-200 cursor-pointer" htmlFor="gift">
-                🎁 Send groceries to someone else (Gift Delivery)
-              </label>
+              <input checked={isGift} onChange={e => setIsGift(e.target.checked)} className="size-5 rounded border-primary accent-primary" id="gift" type="checkbox" />
+              <label className="font-bold cursor-pointer" htmlFor="gift">🎁 Send groceries to someone else (Gift Delivery)</label>
             </div>
             {isGift && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4">
-                <input
-                  value={form.recipientName}
-                  onChange={e => setForm({ ...form, recipientName: e.target.value })}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 h-11 px-4 text-sm outline-none focus:border-primary"
-                  placeholder="Recipient Full Name"
-                  type="text"
-                />
-                <input
-                  value={form.recipientPhone}
-                  onChange={e => setForm({ ...form, recipientPhone: e.target.value })}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 h-11 px-4 text-sm outline-none focus:border-primary"
-                  placeholder="Recipient Phone Number"
-                  type="tel"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input value={form.recipientName} onChange={e => setForm({...form, recipientName: e.target.value})} className="rounded-lg border h-11 px-4 text-sm" placeholder="Recipient Full Name" type="text" />
+                <input value={form.recipientPhone} onChange={e => setForm({...form, recipientPhone: e.target.value})} className="rounded-lg border h-11 px-4 text-sm" placeholder="Recipient Phone Number" type="tel" />
               </div>
             )}
           </div>
-
-          {/* Express Delivery Toggle */}
-          <div
-            className={`flex items-center justify-between p-5 rounded-xl cursor-pointer transition-colors border-2 ${expressDelivery ? 'bg-primary/10 border-primary' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-primary/40'}`}
-            onClick={() => setExpressDelivery(!expressDelivery)}
-          >
+          <div className={`flex items-center justify-between p-5 rounded-xl cursor-pointer border-2 ${expressDelivery ? 'bg-primary/10 border-primary' : 'bg-white border-slate-200 hover:border-primary/40'}`} onClick={() => setExpressDelivery(!expressDelivery)}>
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary rounded-lg text-white">
-                <span className="material-symbols-outlined">bolt</span>
-              </div>
-              <div>
-                <p className="font-bold">Express Delivery</p>
-                <p className="text-xs text-slate-500">{fees.expressDeliveryLabel}</p>
-              </div>
+              <div className="p-2 bg-primary rounded-lg text-white"><span className="material-symbols-outlined">bolt</span></div>
+              <p className="font-bold">Express Delivery</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-bold text-primary">+{fees.expressDeliveryFee.toLocaleString()} RWF surcharge</span>
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${expressDelivery ? 'bg-primary border-primary' : 'border-slate-300'}`}>
-                {expressDelivery && <span className="material-symbols-outlined text-white text-sm">check</span>}
-              </div>
-            </div>
+            <span className="font-bold text-primary">+{fees.expressDeliveryFee.toLocaleString()} RWF surcharge</span>
           </div>
         </section>
       </div>
 
-      {/* ── Right Column: Order Summary ─────────────────────────── */}
       <div className="lg:col-span-4">
-        <div className="sticky top-28 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-primary/10 p-7 flex flex-col gap-5">
-          <h2 className="text-2xl font-black border-b border-primary/10 pb-4 tracking-tight">Order Summary</h2>
-
-          {/* Item breakdown */}
+        <div className="sticky top-28 bg-white rounded-xl shadow-xl border border-primary/10 p-7 flex flex-col gap-5">
+          <h2 className="text-2xl font-black border-b border-primary/10 pb-4">Order Summary</h2>
           {items.length > 0 && (
             <div className="flex flex-col gap-2 text-sm">
-              {items.map(item => {
-                const step = getUnitStep(item.unit ?? 'piece');
-                const qtyLabel = step < 1
-                  ? `${item.quantity.toFixed(1)} kg`
-                  : `${item.quantity} × ${item.unit}`;
-                return (
-                  <div key={item.id} className="flex justify-between gap-2 text-slate-600 dark:text-slate-400">
-                    <span className="truncate">{qtyLabel} {item.name}</span>
-                    <span className="shrink-0 font-semibold">{(item.price * item.quantity).toLocaleString(undefined, { maximumFractionDigits: 0 })} RWF</span>
-                  </div>
-                );
-              })}
+              {items.map(item => (
+                <div key={item.id} className="flex justify-between gap-2 text-slate-600">
+                  <span className="truncate">{item.name} {item.selectedVariants && `(${item.selectedVariants.length} items)`}</span>
+                  <span className="font-semibold">{ (item.selectedVariants ? item.selectedVariants.reduce((s,v) => s+(v.price*v.quantity),0) : (item.price*item.quantity)).toLocaleString() } RWF</span>
+                </div>
+              ))}
             </div>
           )}
-
           <div className="h-px bg-primary/10" />
-
-          <div className="flex flex-col gap-3 text-sm">
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
-              <span>Subtotal</span>
-              <span>{subtotal.toLocaleString()} RWF</span>
-            </div>
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
-              <span>Delivery Fee {expressDelivery && <span className="text-xs text-primary">(Express)</span>}</span>
-              <span>{deliveryFee.toLocaleString()} RWF</span>
-            </div>
-          </div>
-
-          <div className="h-px bg-primary/10" />
-
-          <div className="flex justify-between items-center text-xl font-black">
-            <span>Total</span>
-            <span className="text-primary">{totalAmount.toLocaleString()} RWF</span>
-          </div>
-
-          {/* Validation hint */}
-          {!isFormValid && items.length > 0 && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2 font-medium">
-              Please fill in your Name, Phone, and Delivery Location to send your order.
-            </p>
-          )}
-
-          <div className="flex flex-col gap-3 mt-2">
-            <button
-              onClick={handleCheckout}
-              disabled={!canCheckout}
-              className="w-full bg-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
-            >
-              <WhatsAppIcon className="size-5" />
-              Send Order via WhatsApp
-            </button>
-            <p className="text-[10px] text-center text-slate-400 uppercase tracking-widest font-bold">Safe & Secure Ordering</p>
-          </div>
+          <div className="flex justify-between items-center text-xl font-black"><span>Total</span><span className="text-primary">{totalAmount.toLocaleString()} RWF</span></div>
+          <button onClick={handleCheckout} disabled={!canCheckout} className="w-full bg-primary disabled:opacity-40 text-white font-bold h-14 rounded-xl flex items-center justify-center gap-3">
+             <WhatsAppIcon className="size-5" /> Send Order via WhatsApp
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Basket Cart Row Component ────────────────────────────────────────────────
-function BasketCartRow({
-  item,
-  lineTotal,
-  onRemove,
-  onDecrement,
-  onIncrement,
-}: {
-  item: import('@/store/cartStore').CartItem;
-  lineTotal: number;
-  onRemove: () => void;
-  onDecrement: () => void;
-  onIncrement: () => void;
-}) {
+function BasketCartRow({ item, lineTotal, onRemove }: { item: CartItem, lineTotal: number, onRemove: () => void }) {
   const [expanded, setExpanded] = useState(false);
-
   return (
     <>
-      <tr className="bg-amber-50/40 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
-        {/* Basket Info */}
+      <tr className="bg-amber-50/40 hover:bg-amber-50">
         <td className="px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="size-14 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-700">
-              <span className="material-symbols-outlined text-amber-600 text-2xl">shopping_basket</span>
-            </div>
+            <div className="size-14 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200"><span className="material-symbols-outlined text-amber-600">shopping_basket</span></div>
             <div>
-              <div className="flex items-center gap-2">
-                <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{item.name}</p>
-                <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] font-black rounded-full uppercase tracking-wide">
-                  {item.basketItemCount} items
-                </span>
-              </div>
-              <div className="flex items-center gap-3 mt-1">
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="text-[11px] text-primary font-semibold hover:underline flex items-center gap-0.5"
-                >
-                  <span className="material-symbols-outlined text-[13px]">{expanded ? 'expand_less' : 'expand_more'}</span>
-                  {expanded ? 'Hide contents' : 'See contents'}
-                </button>
-                <span className="text-slate-300">·</span>
-                <button
-                  onClick={onRemove}
-                  className="text-[11px] text-red-400 hover:text-red-600 font-semibold transition-colors"
-                >
-                  Remove
-                </button>
-              </div>
+              <p className="font-bold text-sm leading-tight">{item.name}</p>
+              <button onClick={() => setExpanded(!expanded)} className="text-[11px] text-primary font-semibold flex items-center gap-0.5 mt-1">
+                <span className="material-symbols-outlined text-[13px]">{expanded ? 'expand_less' : 'expand_more'}</span>
+                {expanded ? 'Hide contents' : 'See contents'}
+              </button>
             </div>
           </div>
         </td>
-
-        {/* Quantity — integer stepper only, min 1 */}
-        <td className="px-5 py-4 text-center">
-          <div className="inline-flex items-center justify-center h-9 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 border border-slate-200 dark:border-slate-700">
-            <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
-              Quantity: <span className="text-slate-900 dark:text-slate-100 ml-1">1</span>
-            </span>
-          </div>
-        </td>
-
-        {/* Unit price */}
-        <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
-          {item.price.toLocaleString()} RWF
-        </td>
-
-        {/* Line total */}
-        <td className="px-5 py-4 text-right font-black text-slate-900 dark:text-slate-100 whitespace-nowrap">
-          {lineTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} RWF
-        </td>
+        <td className="px-5 py-4 text-center">Qty: 1</td>
+        <td className="px-5 py-4 text-right font-black">{lineTotal.toLocaleString()} RWF</td>
       </tr>
-
-      {/* Expandable basket contents */}
       {expanded && item.basketItems && (
-        <tr className="bg-amber-50/20 dark:bg-amber-900/5">
-          <td colSpan={4} className="px-5 pb-4 pt-0">
-            <div className="ml-[68px] border border-amber-200/60 dark:border-amber-700/40 rounded-xl overflow-hidden">
-              {item.basketItems.map((bi, i) => (
-                <div key={i} className="flex justify-between items-center px-4 py-2.5 text-sm border-b border-amber-100 dark:border-amber-800/30 last:border-0">
-                  <span className="text-slate-700 dark:text-slate-300 font-medium">{bi.name}</span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-slate-500 text-xs">{bi.quantity} {bi.unit}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100 text-xs">
-                      {(bi.price_at_time * bi.quantity).toLocaleString()} RWF
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </td>
-        </tr>
+        <tr className="bg-amber-50/20"><td colSpan={4} className="px-5 pb-4 pt-0"><div className="ml-[68px] border rounded-xl overflow-hidden">{item.basketItems.map((bi:any, i:number) => (<div key={i} className="flex justify-between px-4 py-2 text-sm border-b last:border-0"><span>{bi.name}</span><span>{bi.quantity} {bi.unit}</span></div>))}</div></td></tr>
       )}
     </>
   );

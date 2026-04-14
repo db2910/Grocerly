@@ -47,6 +47,12 @@ function ShopContent() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(24);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [selectedCategoryId, searchInput, sortBy]);
 
   // Fetch all data from Supabase on mount
   useEffect(() => {
@@ -178,11 +184,23 @@ function ShopContent() {
 
           {/* Product Grid */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-              {filteredProducts.map(p => (
-                <ProductCard key={p.id} product={toProduct(p)} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                {filteredProducts.slice(0, visibleCount).map(p => (
+                  <ProductCard key={p.id} product={toProduct(p)} />
+                ))}
+              </div>
+              {visibleCount < filteredProducts.length && (
+                <div className="mt-12 flex justify-center">
+                  <button
+                    onClick={() => setVisibleCount(v => v + 24)}
+                    className="bg-white dark:bg-slate-800 border-2 border-primary text-primary font-bold py-3 px-10 rounded-xl hover:bg-primary/5 active:scale-95 transition-all"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center p-16 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
               <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">search_off</span>
