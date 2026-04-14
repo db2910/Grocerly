@@ -47,9 +47,11 @@ export default function ContactUs() {
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         {
+          to_email: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
           user_name: form.name,
           user_email: form.email,
           user_phone: form.phone,
+          reply_to: form.email,
           message: form.message,
           time: new Date().toLocaleString("en-GB", {
             dateStyle: "medium",
@@ -120,12 +122,12 @@ export default function ContactUs() {
                 {
                   icon: "call",
                   title: "Phone",
-                  lines: ["+250 788 000 000", "Mon–Sat, 8 am–8 pm"],
+                  lines: [process.env.NEXT_PUBLIC_ADMIN_PHONE || "+250 788 000 000", "Mon–Sat, 8 am–8 pm"],
                 },
                 {
                   icon: "mail",
                   title: "Email",
-                  lines: ["support@grocerly.rw"],
+                  lines: [process.env.NEXT_PUBLIC_ADMIN_EMAIL || "support@grocerly.rw"],
                 },
                 {
                   icon: "chat",
